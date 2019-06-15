@@ -134,7 +134,7 @@ Environment:
 
 `
 
-func newRootCmd(args []string) *cobra.Command {
+func newRootCmd(client helm.Interface, args []string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "helm",
 		Short:        "The Helm package manager for Kubernetes.",
@@ -182,18 +182,18 @@ func newRootCmd(args []string) *cobra.Command {
 		newVerifyCmd(out),
 
 		// release commands
-		newDeleteCmd(nil, out),
-		newGetCmd(nil, out),
-		newHistoryCmd(nil, out),
-		newInstallCmd(nil, out),
-		newListCmd(nil, out),
-		newRollbackCmd(nil, out),
-		newStatusCmd(nil, out),
-		newUpgradeCmd(nil, out),
+		newDeleteCmd(client, out),
+		newGetCmd(client, out),
+		newHistoryCmd(client, out),
+		newInstallCmd(client, out),
+		newListCmd(client, out),
+		newRollbackCmd(client, out),
+		newStatusCmd(client, out),
+		newUpgradeCmd(client, out),
 
-		newReleaseTestCmd(nil, out),
-		newResetCmd(nil, out),
-		newVersionCmd(nil, out),
+		newReleaseTestCmd(client, out),
+		newResetCmd(client, out),
+		newVersionCmd(client, out),
 
 		newCompletionCmd(out),
 		newHomeCmd(out),
@@ -224,8 +224,8 @@ func init() {
 	grpclog.SetLogger(log.New(ioutil.Discard, "", log.LstdFlags))
 }
 
-func main() {
-	cmd := newRootCmd(os.Args[1:])
+func helmMain(client helm.Interface) {
+	cmd := newRootCmd(client, os.Args[1:])
 	if err := cmd.Execute(); err != nil {
 		switch e := err.(type) {
 		case pluginError:

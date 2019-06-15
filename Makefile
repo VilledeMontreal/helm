@@ -124,6 +124,10 @@ docker-test-unit: check-docker
 		$(DEV_IMAGE) \
 		bash -c "HELM_HOME=/no/such/dir go test $(GOFLAGS) -run $(TESTS) $(PKG) $(TESTFLAGS)"
 
+.PHONY: test-completion
+test-completion: TAGS += fake_client
+test-completion: build
+
 .PHONY: test-style
 test-style:
 	@scripts/validate-go.sh
