@@ -18,28 +18,6 @@ limitations under the License.
 
 package main // import "k8s.io/helm/cmd/helm"
 
-import (
-	"k8s.io/helm/pkg/helm"
-	"github.com/golang/protobuf/ptypes/timestamp"
-	"k8s.io/helm/pkg/proto/hapi/release"
-)
-
 func main() {
-	var date = timestamp.Timestamp{Seconds: 109236000, Nanos: 0}
-	client := &helm.FakeClient{
-	    Rels: []*release.Release{
-	        &release.Release{
-	            Name: "flummoxed-chickadee",
-	            Info: &release.Info{
-	                FirstDeployed: &date,
-	                LastDeployed:  &date,
-	                Status: &release.Status{
-	                    Code: release.Status_DEPLOYED,
-	                },
-	            },
-            },
-        },
-    }
-
-    helmMain(client)
+	helmMain(createCompetletionClientForTests())
 }

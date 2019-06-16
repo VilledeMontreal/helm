@@ -12,10 +12,12 @@ GO        ?= go
 PKG       := $(shell glide novendor)
 TAGS      :=
 TESTS     := .
+COMPLETION_TESTS := ./cmd/helm/completion_test.go
 TESTFLAGS :=
 LDFLAGS   := -w -s
 GOFLAGS   :=
 BINDIR    := $(CURDIR)/bin
+FAKEBINDIR := $(BINDIR)/fake
 BINARIES  := helm tiller
 
 # Required for globs to work correctly
@@ -27,6 +29,11 @@ all: build
 .PHONY: build
 build:
 	GOBIN=$(BINDIR) $(GO) install $(GOFLAGS) -tags '$(TAGS)' -ldflags '$(LDFLAGS)' k8s.io/helm/cmd/...
+
+.PHONY: build-fake-client
+build-fake-client: TAGS += fake_client
+build-fake-client: BINDIR := $(FAKEBINDIR)
+build-fake-client: build
 
 # usage: make clean build-cross dist VERSION=v2.0.0-alpha.3
 .PHONY: build-cross
@@ -125,8 +132,13 @@ docker-test-unit: check-docker
 		bash -c "HELM_HOME=/no/such/dir go test $(GOFLAGS) -run $(TESTS) $(PKG) $(TESTFLAGS)"
 
 .PHONY: test-completion
-test-completion: TAGS += fake_client
-test-completion: build
+test-completion: build-fake-client
+test-completion: TESTFLAGS += -race -v
+test-completion:
+	@echo
+	@echo "==> Running completion unit tests <=="
+	$(FAKEBINDIR)/helm completion bash > /tmp/helm_completion.bash
+	HELM_HOME=/no/such/dir PATH=$(FAKEBINDIR):$(PATH) $(GO) test $(GOFLAGS) $(COMPLETION_TESTS) $(TESTFLAGS)
 
 .PHONY: test-style
 test-style:

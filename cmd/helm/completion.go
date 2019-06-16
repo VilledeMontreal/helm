@@ -19,8 +19,12 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"strconv"
 
+	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/spf13/cobra"
+	"k8s.io/helm/pkg/helm"
+	"k8s.io/helm/pkg/proto/hapi/release"
 )
 
 const completionDesc = `
@@ -229,4 +233,29 @@ __helm_bash_source <(__helm_convert_bash_to_zsh)
 `
 	out.Write([]byte(zshTail))
 	return nil
+}
+
+const (
+	numTestReleases = 300
+	baseSeconds     = 109226000
+)
+
+func createCompetletionClientForTests() helm.Interface {
+	releases := make([]*release.Release, numTestReleases)
+	for i := 0; i < numTestReleases; i++ {
+		releases[i] = &release.Release{
+			Name: "rel" + strconv.Itoa(i),
+			Info: &release.Info{
+				FirstDeployed: &timestamp.Timestamp{
+					Seconds: baseSeconds + int64(100000*i)},
+				LastDeployed: &timestamp.Timestamp{
+					Seconds: baseSeconds + int64(150000*i)},
+				Status: &release.Status{
+					Code: release.Status_DEPLOYED,
+				},
+			},
+		}
+	}
+
+	return &helm.FakeClient{Rels: releases}
 }
