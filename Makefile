@@ -1,4 +1,5 @@
 BINDIR     := $(CURDIR)/bin
+FAKEBINDIR := $(BINDIR)/fake
 DIST_DIRS  := find * -type d -exec
 TARGETS    := darwin/amd64 linux/amd64 linux/386 linux/arm linux/arm64 linux/ppc64le windows/amd64
 BINNAME    ?= helm
@@ -54,6 +55,20 @@ build: $(BINDIR)/$(BINNAME)
 
 $(BINDIR)/$(BINNAME): $(SRC) vendor
 	go build $(GOFLAGS) -tags '$(TAGS)' -ldflags '$(LDFLAGS)' -o $(BINDIR)/$(BINNAME) helm.sh/helm/cmd/helm
+
+.PHONY: build-completion-fake-client
+# Must always clean as make does not rebuild if only the TAGS have changed.
+# Without it doing 'make build' followed by 'make build-completion-fake-client'
+# would not build the fake client.
+build-completion-fake-client: clean
+build-completion-fake-client: TAGS += completion_fake_client
+build-completion-fake-client: build-fake-client
+
+# Keep this separate for the other build-*-fake-client targets so
+# that when we set BINDIR to FAKEBINDIR, it does not affect the call to 'clean'
+.PHONY: build-fake-client
+build-fake-client: BINDIR := $(FAKEBINDIR)
+build-fake-client: build
 
 # ------------------------------------------------------------------------------
 #  test
