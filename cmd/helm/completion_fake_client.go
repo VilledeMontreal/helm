@@ -34,8 +34,8 @@ import (
 )
 
 const (
-	numTestReleases   = 300
-	sampleTimeSeconds = int64(46966690)
+	completionNumTestReleases   = 300
+	completionSampleTimeSeconds = int64(46966690)
 )
 
 func main() {
@@ -60,13 +60,13 @@ func createFakeStore() *storage.Storage {
 	d := driver.NewMemory()
 	store := storage.Init(d)
 
-	for i := 0; i < numTestReleases; i++ {
+	for i := 0; i < completionNumTestReleases; i++ {
 		store.Create(&release.Release{
 			Name:      "rel" + strconv.Itoa(i),
 			Version:   i,
 			Namespace: "default",
 			Info: &release.Info{
-				LastDeployed: time.Unix(sampleTimeSeconds+int64(100000*i), 0).UTC(),
+				LastDeployed: time.Unix(completionSampleTimeSeconds+int64(100000*i), 0).UTC(),
 				Status:       release.StatusDeployed,
 			},
 			Chart: &chart.Chart{

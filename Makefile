@@ -14,6 +14,7 @@ GOLANGCI_LINT = $(GOPATH)/bin/golangci-lint
 PKG        := ./...
 TAGS       :=
 TESTS      := .
+COMPLETION_TESTS := ./cmd/helm/completion_test.go
 TESTFLAGS  :=
 LDFLAGS    := -w -s
 GOFLAGS    :=
@@ -95,6 +96,14 @@ test-coverage: vendor
 test-style: vendor $(GOLANGCI_LINT)
 	$(GOLANGCI_LINT) run
 	@scripts/validate-license.sh
+
+.PHONY: test-completion
+test-completion: TESTFLAGS += -race -v
+test-completion: build-completion-fake-client
+	@echo
+	@echo "==> Running completion unit tests <=="
+	$(FAKEBINDIR)/helm completion bash > /tmp/helm_completion.bash
+	PATH=$(FAKEBINDIR):$(PATH) HELM_HOME=/no_such_dir go test $(GOFLAGS) $(COMPLETION_TESTS) $(TESTFLAGS)
 
 .PHONY: verify-docs
 verify-docs: build
