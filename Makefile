@@ -81,6 +81,26 @@ test-style: vendor $(GOLANGCI_LINT)
 	$(GOLANGCI_LINT) run
 	@scripts/validate-license.sh
 
+.PHONY: test-completion
+COMP_DIR := /tmp/helm-tests
+COMP_SCRIPT := $(COMP_DIR)/completion-tests.sh
+test-completion: TARGETS = linux/amd64
+test-completion: check-docker build-cross
+test-completion:
+	@mkdir -p $(COMP_DIR)
+	@cp scripts/completion-tests.sh $(COMP_DIR)
+	@cp _dist/linux-amd64/helm $(COMP_DIR)
+	@echo "Completion tests for bash 4.4 using Docker:"
+	docker run --rm -v $(COMP_DIR):$(COMP_DIR) -v $(COMP_DIR)/helm:/bin/helm bash:4.4 bash -c $(COMP_SCRIPT)
+#	@echo "Completion tests for zsh 5.7 using Docker:"
+#	docker run --rm -v $(COMP_DIR):$(COMP_DIR) -v $(COMP_DIR)/helm:/bin/helm zshusers/zsh:5.7 zsh -c $(COMP_SCRIPT)
+	if [ "$$(uname)" == "Darwin" ]; then \
+		echo "Completion tests for bash running locally:"; \
+		bash -c $(COMP_SCRIPT); \
+		echo "Completion tests for zsh running locally:"; \
+		zsh -c $(COMP_SCRIPT); \
+	fi
+
 .PHONY: verify-docs
 verify-docs: build
 	@scripts/verify-docs.sh
@@ -145,6 +165,13 @@ checksum:
 	for f in _dist/*.{gz,zip} ; do \
 		shasum -a 256 "$${f}"  | awk '{print $$1}' > "$${f}.sha256" ; \
 	done
+
+.PHONY: check-docker
+check-docker:
+	if [ -z $$(which docker) ]; then \
+	  echo "Missing \`docker\` client which is required for this step"; \
+	  exit 2; \
+	fi
 
 # ------------------------------------------------------------------------------
 
