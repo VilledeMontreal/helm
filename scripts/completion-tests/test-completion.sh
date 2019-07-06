@@ -27,7 +27,7 @@ docker run --rm \
            -v ${COMP_DIR}:${COMP_DIR} -v ${COMP_DIR}/helm:/bin/helm \
            ${BASH4_IMAGE} bash -c "source ${COMP_DIR}/${COMP_SCRIPT}"
 
-# Bash 3.2 (MacOS version) completion tests
+# Bash 3.2 (that is the version by default on MacOS) completion tests
 docker build -t ${BASH3_IMAGE} - <<- EOF
    FROM bash:3.2
 EOF
