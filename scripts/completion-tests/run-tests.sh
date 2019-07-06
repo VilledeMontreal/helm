@@ -88,6 +88,10 @@ _helm_test_verifyCompletion() {
 
 SHELL_TYPE=bash
 if [ ! -z "$BASH_VERSION" ];then
+   echo "===================================================="
+   echo "Running completions tests on $(uname) with bash $BASH_VERSION"
+   echo "===================================================="
+
    bashCompletionScript="/usr/share/bash-completion/bash_completion"
    if [ $(uname) = "Darwin" ]; then
       bashCompletionScript="/usr/local/etc/bash_completion"
@@ -95,7 +99,9 @@ if [ ! -z "$BASH_VERSION" ];then
 
    source ${bashCompletionScript}
 else
-   echo "setup zsh completion"
+   echo "===================================================="
+   echo "Running completions tests on $(uname) with zsh $BASH_VERSION"
+   echo "===================================================="
    autoload -Uz compinit
    compinit
    SHELL_TYPE=zsh
@@ -106,5 +112,7 @@ source /dev/stdin <<- EOF
 EOF
 
 _helm_test_runCompletionTests
+
+echo "===================================================="
 
 exit $TEST_FAILED
