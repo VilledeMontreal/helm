@@ -93,16 +93,13 @@ test-completion:
 	@echo "==========================================="
 	@echo "Completion tests for bash 4.4 using Docker:"
 	@echo "==========================================="
-	docker build -t helm-completion-test-bash4 - <<EOF
-		FROM bash:4.4
-		RUN apk update && apk add bash-completion
-		EOF
-	docker run --rm -v $(COMP_DIR):$(COMP_DIR) -v $(COMP_DIR)/helm:/bin/helm bash:4.4 bash -c $(COMP_SCRIPT)
+	docker build -t helm-bash4 - < scripts/Dockerfile.completion.bash4
+	docker run --rm -v $(COMP_DIR):$(COMP_DIR) -v $(COMP_DIR)/helm:/bin/helm helm-bash4 bash -c $(COMP_SCRIPT)
 #	@echo "=========================================="
 #	@echo "Completion tests for zsh 5.7 using Docker:"
 #	@echo "=========================================="
 #	docker run --rm -v $(COMP_DIR):$(COMP_DIR) -v $(COMP_DIR)/helm:/bin/helm zshusers/zsh:5.7 zsh -c $(COMP_SCRIPT)
-	@if [ "$$(uname)" == "Darwin" ]; then \
+	@if [ "$$(uname)" == "Darwinnnnnnnnnnnn" ]; then \
 		echo "=========================================="; \
 		echo "Completion tests for bash running locally:"; \
 		echo "=========================================="; \

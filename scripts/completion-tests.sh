@@ -88,10 +88,6 @@ _helm_test_verifyCompletion() {
    bashCompletionScript="/usr/share/bash-completion/bash_completion"
    if [ $(uname) = "Darwin" ]; then
       bashCompletionScript="/usr/local/etc/bash_completion"
-   else
-      if [ ! -f ${bashCompletionScript} ]; then
-         apk update && apk add bash-completion
-      fi
    fi
 
    source ${bashCompletionScript}
