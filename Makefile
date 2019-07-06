@@ -82,35 +82,10 @@ test-style: vendor $(GOLANGCI_LINT)
 	@scripts/validate-license.sh
 
 .PHONY: test-completion
-COMP_DIR := /tmp/helm-tests
-COMP_SCRIPT := $(COMP_DIR)/completion-tests.sh
 test-completion: TARGETS = linux/amd64
-test-completion: check-docker build build-cross
+test-completion: build build-cross
 test-completion:
-	@mkdir -p $(COMP_DIR)
-	@cp scripts/completion-tests.sh $(COMP_DIR)
-	@cp _dist/linux-amd64/helm $(COMP_DIR)
-	
-	@echo "==========================================="
-	@echo "Completion tests for bash 4.4 using Docker:"
-	@echo "==========================================="
-	@docker build -t helm-bash4 - < scripts/Dockerfile.completion.bash4
-	@docker run --rm -v $(COMP_DIR):$(COMP_DIR) -v $(COMP_DIR)/helm:/bin/helm helm-bash4 bash -c "source $(COMP_SCRIPT)"
-	
-	@echo "=========================================="
-	@echo "Completion tests for zsh 5.7 using Docker:"
-	@echo "=========================================="
-	@docker build -t helm-zsh - < scripts/Dockerfile.completion.zsh
-	docker run --rm -v $(COMP_DIR):$(COMP_DIR) -v $(COMP_DIR)/helm:/bin/helm helm-zsh zsh -c "source $(COMP_SCRIPT)"
-	
-	@if [ "$$(uname)" == "Darwinnnnnnnnnnnn" ]; then \
-		echo "=========================================="; \
-		echo "Completion tests for bash running locally:"; \
-		echo "=========================================="; \
-		PATH=$(BINDIR):$$PATH /bin/bash -c $(COMP_SCRIPT); \
-		echo "Completion tests for zsh running locally:"; \
-		zsh -c $(COMP_SCRIPT); \
-	fi
+	scripts/completion-tests/test-completion.sh
 
 .PHONY: verify-docs
 verify-docs: build
@@ -176,13 +151,6 @@ checksum:
 	for f in _dist/*.{gz,zip} ; do \
 		shasum -a 256 "$${f}"  | awk '{print $$1}' > "$${f}.sha256" ; \
 	done
-
-.PHONY: check-docker
-check-docker:
-	@if [ -z $$(which docker) ]; then \
-	  echo "Missing \`docker\` client which is required for this step"; \
-	  exit 2; \
-	fi
 
 # ------------------------------------------------------------------------------
 
