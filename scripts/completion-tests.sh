@@ -78,27 +78,11 @@ _helm_test_verifyCompletion() {
    result=$(_helm_test_complete "${cmdLine}")
 
    if [ "$result"  != "$expected" ]; then
-      failures+=(${cmdLine})
-      echo "FAIL: Expected \"$expected\" but got \"$result\""
+      echo "FAIL: \"$cmdLine\" should complete to \"$expected\" but we got \"$result\""
    else
       echo "SUCCESS: \"$cmdLine\" completes to \"$result\""
    fi
 }
-
-summary() {
-   if [ ${#failures} -eq 0 ]; then
-      echo "All completion tests for $SHELL $BASH_VERSION passed."
-      exit 0
-   else
-       echo "Got FAILURES for completion tests for $SHELL $BASH_VERSION:"
-       for i in ${failures[*]}; do
-         echo "$i failed"
-       done
-       exit 1
-   fi
-}
-
-failures=()
 
 #if [ "$0" = "bash" ];then
    bashCompletionScript="/usr/share/bash-completion/bash_completion"
@@ -120,6 +104,3 @@ $(helm completion bash)
 EOF
 
 _helm_test_runCompletionTests
-
-summary
-

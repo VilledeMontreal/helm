@@ -85,18 +85,28 @@ test-style: vendor $(GOLANGCI_LINT)
 COMP_DIR := /tmp/helm-tests
 COMP_SCRIPT := $(COMP_DIR)/completion-tests.sh
 test-completion: TARGETS = linux/amd64
-test-completion: check-docker build-cross
+test-completion: check-docker build build-cross
 test-completion:
 	@mkdir -p $(COMP_DIR)
 	@cp scripts/completion-tests.sh $(COMP_DIR)
 	@cp _dist/linux-amd64/helm $(COMP_DIR)
+	@echo "==========================================="
 	@echo "Completion tests for bash 4.4 using Docker:"
+	@echo "==========================================="
+	docker build -t helm-completion-test-bash4 - <<EOF
+		FROM bash:4.4
+		RUN apk update && apk add bash-completion
+		EOF
 	docker run --rm -v $(COMP_DIR):$(COMP_DIR) -v $(COMP_DIR)/helm:/bin/helm bash:4.4 bash -c $(COMP_SCRIPT)
+#	@echo "=========================================="
 #	@echo "Completion tests for zsh 5.7 using Docker:"
+#	@echo "=========================================="
 #	docker run --rm -v $(COMP_DIR):$(COMP_DIR) -v $(COMP_DIR)/helm:/bin/helm zshusers/zsh:5.7 zsh -c $(COMP_SCRIPT)
-	if [ "$$(uname)" == "Darwin" ]; then \
+	@if [ "$$(uname)" == "Darwin" ]; then \
+		echo "=========================================="; \
 		echo "Completion tests for bash running locally:"; \
-		bash -c $(COMP_SCRIPT); \
+		echo "=========================================="; \
+		PATH=$(BINDIR):$$PATH /bin/bash -c $(COMP_SCRIPT); \
 		echo "Completion tests for zsh running locally:"; \
 		zsh -c $(COMP_SCRIPT); \
 	fi
@@ -168,7 +178,7 @@ checksum:
 
 .PHONY: check-docker
 check-docker:
-	if [ -z $$(which docker) ]; then \
+	@if [ -z $$(which docker) ]; then \
 	  echo "Missing \`docker\` client which is required for this step"; \
 	  exit 2; \
 	fi
