@@ -95,13 +95,13 @@ test-completion:
 	@echo "Completion tests for bash 4.4 using Docker:"
 	@echo "==========================================="
 	@docker build -t helm-bash4 - < scripts/Dockerfile.completion.bash4
-	@docker run --rm -v $(COMP_DIR):$(COMP_DIR) -v $(COMP_DIR)/helm:/bin/helm helm-bash4 bash -c $(COMP_SCRIPT)
+	@docker run --rm -v $(COMP_DIR):$(COMP_DIR) -v $(COMP_DIR)/helm:/bin/helm helm-bash4 bash -c "source $(COMP_SCRIPT)"
 	
 	@echo "=========================================="
 	@echo "Completion tests for zsh 5.7 using Docker:"
 	@echo "=========================================="
 	@docker build -t helm-zsh - < scripts/Dockerfile.completion.zsh
-	@docker run --rm -v $(COMP_DIR):$(COMP_DIR) -v $(COMP_DIR)/helm:/bin/helm helm-zsh zsh -c $(COMP_SCRIPT)
+	docker run --rm -v $(COMP_DIR):$(COMP_DIR) -v $(COMP_DIR)/helm:/bin/helm helm-zsh zsh -c "source $(COMP_SCRIPT)"
 	
 	@if [ "$$(uname)" == "Darwinnnnnnnnnnnn" ]; then \
 		echo "=========================================="; \

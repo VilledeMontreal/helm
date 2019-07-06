@@ -64,7 +64,7 @@ _helm_test_complete() {
    COMP_CWORD=$((${#COMP_WORDS[@]}-1))
    # We must check for a space as the last character which will tell us
    # that the previous word is complete and the cursor is on the next word.
-   [ "${cmdLine: -1}" == " " ] && COMP_CWORD=${#COMP_WORDS[@]}
+   [ "${cmdLine: -1}" = " " ] && COMP_CWORD=${#COMP_WORDS[@]}
 
    __start_helm
 
@@ -84,19 +84,24 @@ _helm_test_verifyCompletion() {
    fi
 }
 
-#if [ "$0" = "bash" ];then
+SHELL_TYPE=bash
+if [ ! -z "$BASH_VERSION" ];then
    bashCompletionScript="/usr/share/bash-completion/bash_completion"
    if [ $(uname) = "Darwin" ]; then
       bashCompletionScript="/usr/local/etc/bash_completion"
    fi
 
    source ${bashCompletionScript}
-#else
-#   echo "setup zsh completion"
-#fi
+else
+   echo "setup zsh completion"
+   autoload -Uz compinit
+   compinit
+   SHELL_TYPE=zsh
+fi
 
-source /dev/stdin <<EOF
-$(helm completion bash)
+source /dev/stdin <<- EOF
+   $(helm completion $SHELL_TYPE)
 EOF
 
 _helm_test_runCompletionTests
+
