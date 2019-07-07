@@ -60,14 +60,18 @@ _helm_test_complete() {
    COMP_POINT=${#COMP_LINE}
    COMP_TYPE=9 # 9 is TAB
    COMP_KEY=9  # 9 is TAB
-   COMP_WORDS=(${cmdLine})
+   COMP_WORDS=($(echo ${cmdLine}))
 
    COMP_CWORD=$((${#COMP_WORDS[@]}-1))
    # We must check for a space as the last character which will tell us
    # that the previous word is complete and the cursor is on the next word.
    [ "${cmdLine: -1}" = " " ] && COMP_CWORD=${#COMP_WORDS[@]}
 
-   __start_helm
+   if [ $SHELL_TYPE = "zsh" ]; then
+       __helm_bash_source <(echo "__start_helm")
+   else
+       __start_helm
+   fi
 
    echo "${COMPREPLY[@]}"
 }
@@ -115,4 +119,4 @@ _helm_test_runCompletionTests
 
 echo "===================================================="
 
-exit $TEST_FAILED
+return $TEST_FAILED
