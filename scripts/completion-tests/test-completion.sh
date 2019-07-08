@@ -1,5 +1,6 @@
 #!/bin/sh
 
+# Fail as soon as there is an error
 set -e
 
 if [ -z $(which docker) ]; then
