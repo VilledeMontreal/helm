@@ -46,8 +46,9 @@ docker run --rm \
            -v ${COMP_DIR}:${COMP_DIR} -v ${COMP_DIR}/helm:/bin/helm \
            ${ZSH_IMAGE} zsh -c "source ${COMP_DIR}/${COMP_SCRIPT}"
 
-#if [ "$(uname)" == "Darwin" ]; then \
-#   PATH=${BINDIR}:$$PATH /bin/bash -c ${COMP_SCRIPT}; \
-#   echo "Completion tests for zsh running locally:"; \
-#   zsh -c ${COMP_SCRIPT}; \
-#fi
+if [ "$(uname)" == "Darwin" ]; then
+   echo "Completion tests for bash running locally"
+   PATH=$(pwd)/bin:$PATH bash -c "source ${COMP_DIR}/${COMP_SCRIPT}"
+   echo "Completion tests for zsh running locally"
+   PATH=$(pwd)/bin:$PATH zsh -c "source ${COMP_DIR}/${COMP_SCRIPT}"
+fi
