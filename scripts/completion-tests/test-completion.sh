@@ -47,6 +47,15 @@ docker run --rm \
            ${ZSH_IMAGE} zsh -c "source ${COMP_DIR}/${COMP_SCRIPT}"
 
 if [ "$(uname)" == "Darwin" ]; then
+   # Make sure that for the local tests, the tests will find the newly
+   # built helm.  If for some reason bin/helm is not present and we
+   # don't do this check, the tests may use the default helm installed on
+   # localhost and we won't be testing the right thing.  So we check.
+   if [ $(PATH=$(pwd)/bin:$PATH which helm) != $(pwd)/bin/helm ]; then
+      echo "Cannot find helm under $(pwd)/bin/helm although it is what we need to test."
+      exit 1
+   fi
+
    if [ -f /usr/local/etc/bash_completion ]; then
       echo "Completion tests for bash running locally"
       PATH=$(pwd)/bin:$PATH bash -c "source ${COMP_DIR}/${COMP_SCRIPT}"
