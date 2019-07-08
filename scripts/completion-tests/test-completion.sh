@@ -47,8 +47,11 @@ docker run --rm \
            ${ZSH_IMAGE} zsh -c "source ${COMP_DIR}/${COMP_SCRIPT}"
 
 if [ "$(uname)" == "Darwin" ]; then
-   echo "Completion tests for bash running locally"
-   PATH=$(pwd)/bin:$PATH bash -c "source ${COMP_DIR}/${COMP_SCRIPT}"
+   if [ -f /usr/local/etc/bash_completion ]; then
+      echo "Completion tests for bash running locally"
+      PATH=$(pwd)/bin:$PATH bash -c "source ${COMP_DIR}/${COMP_SCRIPT}"
+   fi
+
    echo "Completion tests for zsh running locally"
    PATH=$(pwd)/bin:$PATH zsh -c "source ${COMP_DIR}/${COMP_SCRIPT}"
 fi
