@@ -17,7 +17,9 @@ mkdir -p ${COMP_DIR}
 cp scripts/completion-tests/${COMP_SCRIPT} ${COMP_DIR}
 cp _dist/linux-amd64/helm ${COMP_DIR}
 
+########################################
 # Bash 4 completion tests
+########################################
 docker build -t ${BASH4_IMAGE} - <<- EOF
    FROM bash:4.4
    RUN apk update && apk add bash-completion
@@ -26,7 +28,12 @@ docker run --rm \
            -v ${COMP_DIR}:${COMP_DIR} -v ${COMP_DIR}/helm:/bin/helm \
            ${BASH4_IMAGE} bash -c "source ${COMP_DIR}/${COMP_SCRIPT}"
 
-# Bash 3.2 (that is the version by default on MacOS) completion tests
+########################################
+# Bash 3.2 completion tests
+########################################
+# We choose version 3.2 because we want some Bash 3 version and 3.2
+# is the version by default on MacOS.  So testing that version
+# gives us a bit of coverage for MacOS.
 docker build -t ${BASH3_IMAGE} - <<- EOF
    FROM bash:3.2
    # For bash 3.2, the bash-completion package required is version 1.3
@@ -38,7 +45,9 @@ docker run --rm \
            -v ${COMP_DIR}:${COMP_DIR} -v ${COMP_DIR}/helm:/bin/helm \
            ${BASH3_IMAGE} bash -c "source ${COMP_DIR}/${COMP_SCRIPT}"
 
+########################################
 # Zsh completion tests
+########################################
 docker build -t ${ZSH_IMAGE} - <<- EOF
    FROM zshusers/zsh:5.7
 EOF
@@ -46,8 +55,11 @@ docker run --rm \
            -v ${COMP_DIR}:${COMP_DIR} -v ${COMP_DIR}/helm:/bin/helm \
            ${ZSH_IMAGE} zsh -c "source ${COMP_DIR}/${COMP_SCRIPT}"
 
-# For people running MacOS, we run the tests locally.
-# This gives us some test coverage for MacOS.
+########################################
+# MacOS completion tests
+########################################
+# Since we can't use Docker to test for MacOS,
+# we run the MacOS tests locally when possible.
 if [ "$(uname)" == "Darwin" ]; then
    # Make sure that for the local tests, the tests will find the newly
    # built helm.  If for some reason bin/helm is not present and we
