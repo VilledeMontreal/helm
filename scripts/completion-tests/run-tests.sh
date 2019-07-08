@@ -55,7 +55,8 @@ _helm_test_runCompletionTests() {
 _helm_test_complete() {
    local cmdLine=$1
 
-   # Set the bash completion variables
+   # Set the bash completion variables which are
+   # used for both bash and zsh completion
    COMP_LINE=${cmdLine}
    COMP_POINT=${#COMP_LINE}
    COMP_TYPE=9 # 9 is TAB
@@ -68,6 +69,9 @@ _helm_test_complete() {
    [ "${cmdLine: -1}" = " " ] && COMP_CWORD=${#COMP_WORDS[@]}
 
    if [ $SHELL_TYPE = "zsh" ]; then
+       # When zsh calls real completion, it sets some options and emulates sh.
+       # We need to do the same. We achieve that by re-using the logic of
+       # __helm_bash_source
        __helm_bash_source <(echo "__start_helm")
    else
        __start_helm
