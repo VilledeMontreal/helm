@@ -46,6 +46,8 @@ docker run --rm \
            -v ${COMP_DIR}:${COMP_DIR} -v ${COMP_DIR}/helm:/bin/helm \
            ${ZSH_IMAGE} zsh -c "source ${COMP_DIR}/${COMP_SCRIPT}"
 
+# For people running MacOS, we run the tests locally.
+# This gives us some test coverage for MacOS.
 if [ "$(uname)" == "Darwin" ]; then
    # Make sure that for the local tests, the tests will find the newly
    # built helm.  If for some reason bin/helm is not present and we
