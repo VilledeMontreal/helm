@@ -3,7 +3,7 @@
 set -e
 
 if [ -z $(which docker) ]; then
-  echo "Missing 'docker' client which is required for this step";
+  echo "Missing 'docker' client which is required for these tests";
   exit 2;
 fi
 
@@ -15,7 +15,6 @@ ZSH_IMAGE=helm-zsh
 
 mkdir -p ${COMP_DIR}
 cp scripts/completion-tests/${COMP_SCRIPT} ${COMP_DIR}
-cp scripts/completion-tests/bash_completion-3.2 ${COMP_DIR}
 cp _dist/linux-amd64/helm ${COMP_DIR}
 
 # Bash 4 completion tests
@@ -30,10 +29,13 @@ docker run --rm \
 # Bash 3.2 (that is the version by default on MacOS) completion tests
 docker build -t ${BASH3_IMAGE} - <<- EOF
    FROM bash:3.2
+   # For bash 3.2, the bash-completion package required is version 1.3
+   RUN mkdir /usr/share/bash-completion && \
+       wget -qO - https://github.com/scop/bash-completion/archive/1.3.tar.gz | \
+            tar xvz -C /usr/share/bash-completion --strip-components 1 bash-completion-1.3/bash_completion
 EOF
 docker run --rm \
            -v ${COMP_DIR}:${COMP_DIR} -v ${COMP_DIR}/helm:/bin/helm \
-           -v ${COMP_DIR}/bash_completion-3.2:/usr/share/bash-completion/bash_completion \
            ${BASH3_IMAGE} bash -c "source ${COMP_DIR}/${COMP_SCRIPT}"
 
 # Zsh completion tests
