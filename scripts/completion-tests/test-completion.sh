@@ -44,6 +44,7 @@ docker build -t ${BASH3_IMAGE} - <<- EOF
 EOF
 docker run --rm \
            -v ${COMP_DIR}:${COMP_DIR} -v ${COMP_DIR}/helm:/bin/helm \
+           -e BASH_COMPLETION=/usr/share/bash-completion \
            ${BASH3_IMAGE} bash -c "source ${COMP_DIR}/${COMP_SCRIPT}"
 
 ########################################
