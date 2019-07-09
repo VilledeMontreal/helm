@@ -20,6 +20,22 @@ _helm_test_runCompletionTests() {
    _helm_test_verifyCompletion "completion " "bash zsh"
    _helm_test_verifyCompletion "completion z" "zsh"
 
+   # Completion of flags
+   _helm_test_verifyCompletion "--kube-con" "--kube-context= --kube-context"
+   _helm_test_verifyCompletion "--kubecon" "--kubeconfig= --kubeconfig"
+   _helm_test_verifyCompletion "--name" "--namespace= --namespace"
+   _helm_test_verifyCompletion "-v" "-v"
+   _helm_test_verifyCompletion "--v" "--v= --vmodule= --v --vmodule"
+
+   # Completion of commands while using flags
+   _helm_test_verifyCompletion "--kube-context prod sta" "status"
+   _helm_test_verifyCompletion "--kubeconfig=/tmp/config lis" "list"
+   _helm_test_verifyCompletion "--namespace mynamespace get h" "hooks"
+   _helm_test_verifyCompletion "-v get " "hooks manifest values"
+   _helm_test_verifyCompletion "---namespace mynamespace get " "hooks manifest values"
+   _helm_test_verifyCompletion "get --name" "--namespace= --namespace"
+   _helm_test_verifyCompletion "get hooks --kubec" "--kubeconfig= --kubeconfig"
+
    # Alias completion
    # Does not work.
    #_helm_test_verifyCompletion "ls" "ls"
