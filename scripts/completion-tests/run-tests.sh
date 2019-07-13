@@ -1,74 +1,7 @@
+BINARY_NAME=helm
 TEST_FAILED=0
 
-_helm_test_runCompletionTests() {
-
-   # No need to test every command as completion is handled
-   # automatically by Cobra.
-   # We focus on some smoke tests for the Cobra-handled completion
-   # and on helm-specific features.
-
-   # Basic first level commands (static completion)
-   _helm_test_verifyCompletion "stat" "status"
-   _helm_test_verifyCompletion "status" "status"
-   _helm_test_verifyCompletion "lis" "list"
-   _helm_test_verifyCompletion "r" "registry repo rollback"
-   _helm_test_verifyCompletion "re" "registry repo"
-
-   # Basic second level commands (static completion)
-   _helm_test_verifyCompletion "get " "hooks manifest values"
-   _helm_test_verifyCompletion "get h" "hooks"
-   _helm_test_verifyCompletion "completion " "bash zsh"
-   _helm_test_verifyCompletion "completion z" "zsh"
-
-   # Completion of flags
-   _helm_test_verifyCompletion "--kube-con" "--kube-context= --kube-context"
-   _helm_test_verifyCompletion "--kubecon" "--kubeconfig= --kubeconfig"
-   _helm_test_verifyCompletion "--name" "--namespace= --namespace"
-   _helm_test_verifyCompletion "-v" "-v"
-   _helm_test_verifyCompletion "--v" "--v= --vmodule= --v --vmodule"
-
-   # Completion of commands while using flags
-   _helm_test_verifyCompletion "--kube-context prod sta" "status"
-   _helm_test_verifyCompletion "--kubeconfig=/tmp/config lis" "list"
-   _helm_test_verifyCompletion "--namespace mynamespace get h" "hooks"
-   _helm_test_verifyCompletion "-v get " "hooks manifest values"
-   _helm_test_verifyCompletion "---namespace mynamespace get " "hooks manifest values"
-   _helm_test_verifyCompletion "get --name" "--namespace= --namespace"
-   _helm_test_verifyCompletion "get hooks --kubec" "--kubeconfig= --kubeconfig"
-
-   # Alias completion
-   # Does not work.
-   #_helm_test_verifyCompletion "ls" "ls"
-   #_helm_test_verifyCompletion "dependenci" "dependencies"
-
-   # Output of a single release
-# result := "rel206"
-# _helm_test_verifyCompletion "status rel206" result
-
-# // Output of multiple releases with prefix
-# result = "rel1"
-# for i := 0; i < 10; i++ {
-# 	result += fmt.Sprintf(" rel1%d", i)
-# 	for j := 0; j < 10; j++ {
-# 		result += fmt.Sprintf(" rel1%d%d", i, j)
-# 	}
-# }
-# _helm_test_verifyCompletion "status rel1" ${result}
-#
-# // Output of multiple releases without prefix
-# result = "rel0"
-# // Releases 1 to the limit used in the completion logic (1000)
-# for i := 1; i < 30; i++ {
-# 	result += fmt.Sprintf(" rel%d", i)
-# 	for j := 0; j < 10; j++ {
-# 		result += fmt.Sprintf(" rel1%d%d", i, j)
-# 	}
-# }
-# _helm_test_verifyCompletion "status " ${result}
-
-}
-
-_helm_test_complete() {
+_completionTests_complete() {
    local cmdLine=$1
 
    # Set the bash completion variables which are
@@ -87,20 +20,20 @@ _helm_test_complete() {
    if [ $SHELL_TYPE = "zsh" ]; then
        # When zsh calls real completion, it sets some options and emulates sh.
        # We need to do the same. We achieve that by re-using the logic of
-       # __helm_bash_source
-       __helm_bash_source <(echo "__start_helm")
+       # __${BINARY_NAME}_bash_source
+       __${BINARY_NAME}_bash_source <(echo "__start_${BINARY_NAME}")
    else
-       __start_helm
+       __start_${BINARY_NAME}
    fi
 
    echo "${COMPREPLY[@]}"
 }
 
-_helm_test_verifyCompletion() {
-   local cmdLine="helm $1"
+_completionTests_verifyCompletion() {
+   local cmdLine="${BINARY_NAME} $1"
    local expected=$2
 
-   result=$(_helm_test_complete "${cmdLine}")
+   result=$(_completionTests_complete "${cmdLine}")
 
    if [ "$result"  != "$expected" ]; then
       TEST_FAILED=1
@@ -132,10 +65,10 @@ else
 fi
 
 source /dev/stdin <<- EOF
-   $(helm completion $SHELL_TYPE)
+   $(${BINARY_NAME} completion $SHELL_TYPE)
 EOF
 
-_helm_test_runCompletionTests
+source tests.sh
 
 echo "===================================================="
 
