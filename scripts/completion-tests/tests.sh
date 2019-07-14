@@ -24,13 +24,13 @@ _completionTests_verifyCompletion "-v" "-v"
 _completionTests_verifyCompletion "--v" "--v= --vmodule= --v --vmodule"
 
 # Completion of commands while using flags
-_completionTests_verifyCompletion "--kube-context prod sta" "status"
-_completionTests_verifyCompletion "--kubeconfig=/tmp/config lis" "list"
-_completionTests_verifyCompletion "--namespace mynamespace get h" "hooks"
-_completionTests_verifyCompletion "-v get " "hooks manifest values"
-_completionTests_verifyCompletion "---namespace mynamespace get " "hooks manifest values"
-_completionTests_verifyCompletion "get --name" "--namespace= --namespace"
-_completionTests_verifyCompletion "get hooks --kubec" "--kubeconfig= --kubeconfig"
+#_completionTests_verifyCompletion "--kube-context prod sta" "status"
+#_completionTests_verifyCompletion "--kubeconfig=/tmp/config lis" "list"
+#_completionTests_verifyCompletion "--namespace mynamespace get h" "hooks"
+#_completionTests_verifyCompletion "-v get " "hooks manifest values"
+#_completionTests_verifyCompletion "---namespace mynamespace get " "hooks manifest values"
+#_completionTests_verifyCompletion "get --name" "--namespace= --namespace"
+#_completionTests_verifyCompletion "get hooks --kubec" "--kubeconfig= --kubeconfig"
 
 # Alias completion
 # Does not work.

@@ -68,7 +68,7 @@ source /dev/stdin <<- EOF
    $(${BINARY_NAME} completion $SHELL_TYPE)
 EOF
 
-source tests.sh
+source /tmp/completion-tests/tests.sh
 
 echo "===================================================="
 

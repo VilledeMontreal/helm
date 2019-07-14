@@ -19,6 +19,7 @@ ZSH_IMAGE=completion-zsh
 
 mkdir -p ${COMP_DIR}
 cp scripts/completion-tests/${COMP_SCRIPT} ${COMP_DIR}
+cp scripts/completion-tests/tests.sh ${COMP_DIR}
 cp ${BINARY_PATH}/${BINARY_NAME} ${COMP_DIR}
 
 ########################################
@@ -63,13 +64,13 @@ docker run --rm \
 ########################################
 # MacOS completion tests
 ########################################
-# Since we can't use Docker to test for MacOS,
+# Since we can't use Docker to test MacOS,
 # we run the MacOS tests locally when possible.
 if [ "$(uname)" == "Darwin" ]; then
    # Make sure that for the local tests, the tests will find the newly
-   # built binary.  If for some reason the binary is not present under bin/ and we
-   # don't do this check, the tests may use the default binary installed on
-   # localhost and we won't be testing the right thing.  So we check here.
+   # built binary.  If for some reason the binary to test is not present
+   # the tests may use the default binary installed on localhost and we
+   # won't be testing the right thing.  So we check here.
    if [ $(PATH=$(pwd)/bin:$PATH which ${BINARY_NAME}) != $(pwd)/bin/${BINARY_NAME} ]; then
       echo "Cannot find ${BINARY_NAME} under $(pwd)/bin/${BINARY_NAME} although it is what we need to test."
       exit 1
