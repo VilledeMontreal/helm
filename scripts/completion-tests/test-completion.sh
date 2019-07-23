@@ -12,7 +12,7 @@ if [ -z $(which docker) ]; then
 fi
 
 COMP_DIR=/tmp/completion-tests
-COMP_SCRIPT=run-tests.sh
+COMP_SCRIPT=completion-base.sh
 BASH4_IMAGE=completion-bash4
 BASH3_IMAGE=completion-bash3
 ZSH_IMAGE=completion-zsh
