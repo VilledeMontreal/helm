@@ -1,3 +1,7 @@
+source /tmp/completion-tests/completionTests-base.sh
+
+_completionTests_init
+
 # No need to test every command as completion is handled
 # automatically by Cobra.
 # We focus on some smoke tests for the Cobra-handled completion
@@ -61,3 +65,5 @@ _completionTests_verifyCompletion "--v" "--v= --vmodule= --v --vmodule"
 # 	}
 # }
 # _completionTests_verifyCompletion "status " ${result}
+
+_completionTests_end

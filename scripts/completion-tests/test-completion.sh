@@ -1,7 +1,9 @@
-#!/bin/sh
+#!/usr/bin/env bash
+
+SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
 
 BINARY_NAME=helm
-BINARY_PATH=_dist/linux-amd64
+BINARY_PATH=${SCRIPT_DIR}/../../_dist/linux-amd64
 
 # Fail as soon as there is an error
 set -e
@@ -12,14 +14,15 @@ if [ -z $(which docker) ]; then
 fi
 
 COMP_DIR=/tmp/completion-tests
-COMP_SCRIPT=completion-base.sh
+COMP_SCRIPT_NAME=completionTests.sh
+COMP_SCRIPT=${COMP_DIR}/${COMP_SCRIPT_NAME}
 BASH4_IMAGE=completion-bash4
 BASH3_IMAGE=completion-bash3
 ZSH_IMAGE=completion-zsh
 
 mkdir -p ${COMP_DIR}
-cp scripts/completion-tests/${COMP_SCRIPT} ${COMP_DIR}
-cp scripts/completion-tests/tests.sh ${COMP_DIR}
+cp ${SCRIPT_DIR}/${COMP_SCRIPT_NAME} ${COMP_DIR}
+cp ${SCRIPT_DIR}/completionTests-base.sh ${COMP_DIR}
 cp ${BINARY_PATH}/${BINARY_NAME} ${COMP_DIR}
 
 ########################################
@@ -31,7 +34,7 @@ docker build -t ${BASH4_IMAGE} - <<- EOF
 EOF
 docker run --rm \
            -v ${COMP_DIR}:${COMP_DIR} -v ${COMP_DIR}/${BINARY_NAME}:/bin/${BINARY_NAME} \
-           ${BASH4_IMAGE} bash -c "source ${COMP_DIR}/${COMP_SCRIPT}"
+           ${BASH4_IMAGE} bash -c "source ${COMP_SCRIPT}"
 
 ########################################
 # Bash 3.2 completion tests
@@ -49,7 +52,7 @@ EOF
 docker run --rm \
            -v ${COMP_DIR}:${COMP_DIR} -v ${COMP_DIR}/${BINARY_NAME}:/bin/${BINARY_NAME} \
            -e BASH_COMPLETION=/usr/share/bash-completion \
-           ${BASH3_IMAGE} bash -c "source ${COMP_DIR}/${COMP_SCRIPT}"
+           ${BASH3_IMAGE} bash -c "source ${COMP_SCRIPT}"
 
 ########################################
 # Zsh completion tests
@@ -59,7 +62,7 @@ docker build -t ${ZSH_IMAGE} - <<- EOF
 EOF
 docker run --rm \
            -v ${COMP_DIR}:${COMP_DIR} -v ${COMP_DIR}/${BINARY_NAME}:/bin/${BINARY_NAME} \
-           ${ZSH_IMAGE} zsh -c "source ${COMP_DIR}/${COMP_SCRIPT}"
+           ${ZSH_IMAGE} zsh -c "source ${COMP_SCRIPT}"
 
 ########################################
 # MacOS completion tests
@@ -78,9 +81,9 @@ if [ "$(uname)" == "Darwin" ]; then
 
    if [ -f /usr/local/etc/bash_completion ]; then
       echo "Completion tests for bash running locally"
-      PATH=$(pwd)/bin:$PATH bash -c "source ${COMP_DIR}/${COMP_SCRIPT}"
+      PATH=$(pwd)/bin:$PATH bash -c "source ${COMP_SCRIPT}"
    fi
 
    echo "Completion tests for zsh running locally"
-   PATH=$(pwd)/bin:$PATH zsh -c "source ${COMP_DIR}/${COMP_SCRIPT}"
+   PATH=$(pwd)/bin:$PATH zsh -c "source ${COMP_SCRIPT}"
 fi

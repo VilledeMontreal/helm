@@ -1,6 +1,41 @@
 BINARY_NAME=helm
 TEST_FAILED=0
 
+_completionTests_init() {
+   SHELL_TYPE=bash
+   if [ ! -z "$BASH_VERSION" ];then
+      echo "===================================================="
+      echo "Running completions tests on $(uname) with bash $BASH_VERSION"
+      echo "===================================================="
+
+      bashCompletionScript="/usr/share/bash-completion/bash_completion"
+      if [ $(uname) = "Darwin" ]; then
+         bashCompletionScript="/usr/local/etc/bash_completion"
+      fi
+
+      source ${bashCompletionScript}
+   else
+      echo "===================================================="
+      echo "Running completions tests on $(uname) with zsh $BASH_VERSION"
+      echo "===================================================="
+      autoload -Uz compinit
+      compinit
+      SHELL_TYPE=zsh
+   fi
+
+   # MUST use a TAB to indent the ending EOF or it won't work
+   source /dev/stdin <<- EOF
+      $(${BINARY_NAME} completion $SHELL_TYPE)
+	EOF
+}
+
+# Must use a alias so that the 'return' affects the script
+# calling the alias.  If we used a function, the return value
+# would need to be further returned by the calling script.
+alias _completionTests_end="\
+   echo '====================================================' \
+   return $TEST_FAILED"
+
 _completionTests_complete() {
    local cmdLine=$1
 
@@ -42,34 +77,3 @@ _completionTests_verifyCompletion() {
       echo "SUCCESS: \"$cmdLine\" completes to \"$result\""
    fi
 }
-
-SHELL_TYPE=bash
-if [ ! -z "$BASH_VERSION" ];then
-   echo "===================================================="
-   echo "Running completions tests on $(uname) with bash $BASH_VERSION"
-   echo "===================================================="
-
-   bashCompletionScript="/usr/share/bash-completion/bash_completion"
-   if [ $(uname) = "Darwin" ]; then
-      bashCompletionScript="/usr/local/etc/bash_completion"
-   fi
-
-   source ${bashCompletionScript}
-else
-   echo "===================================================="
-   echo "Running completions tests on $(uname) with zsh $BASH_VERSION"
-   echo "===================================================="
-   autoload -Uz compinit
-   compinit
-   SHELL_TYPE=zsh
-fi
-
-source /dev/stdin <<- EOF
-   $(${BINARY_NAME} completion $SHELL_TYPE)
-EOF
-
-source /tmp/completion-tests/tests.sh
-
-echo "===================================================="
-
-return $TEST_FAILED
