@@ -29,12 +29,11 @@ _completionTests_init() {
 	EOF
 }
 
-# Must use a alias so that the 'return' affects the script
-# calling the alias.  If we used a function, the return value
-# would need to be further returned by the calling script.
-alias _completionTests_end="\
-   echo '====================================================' \
-   return $TEST_FAILED"
+# This method must be called at the very end of the application script
+_completionTests_end() {
+   echo '===================================================='
+   return $TEST_FAILED
+}
 
 _completionTests_complete() {
    local cmdLine=$1
