@@ -1,6 +1,6 @@
-source /tmp/completion-tests/completionTests-base.sh
+BINARY_NAME=helm
 
-_completionTests_init
+source /tmp/completion-tests/completionTests-base.sh
 
 # No need to test every command as completion is handled
 # automatically by Cobra.
@@ -66,4 +66,3 @@ _completionTests_verifyCompletion "--v" "--v= --vmodule= --v --vmodule"
 # }
 # _completionTests_verifyCompletion "status " ${result}
 
-_completionTests_end

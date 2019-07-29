@@ -1,39 +1,36 @@
-BINARY_NAME=helm
-TEST_FAILED=0
 
-_completionTests_init() {
-   SHELL_TYPE=bash
-   if [ ! -z "$BASH_VERSION" ];then
-      echo "===================================================="
-      echo "Running completions tests on $(uname) with bash $BASH_VERSION"
-      echo "===================================================="
+if [ -z ${BINARY_NAME} ]; then
+   echo "ERROR: Main completion test script must set variable BINARY_NAME" \
+        "to the name of the binary to test, e.g. BINARY_NAME=helm"
+   exit 1
+fi
 
-      bashCompletionScript="/usr/share/bash-completion/bash_completion"
-      if [ $(uname) = "Darwin" ]; then
-         bashCompletionScript="/usr/local/etc/bash_completion"
-      fi
+SHELL_TYPE=bash
+if [ ! -z "$BASH_VERSION" ];then
+   echo "===================================================="
+   echo "Running completions tests on $(uname) with bash $BASH_VERSION"
+   echo "===================================================="
 
-      source ${bashCompletionScript}
-   else
-      echo "===================================================="
-      echo "Running completions tests on $(uname) with zsh $BASH_VERSION"
-      echo "===================================================="
-      autoload -Uz compinit
-      compinit
-      SHELL_TYPE=zsh
+   bashCompletionScript="/usr/share/bash-completion/bash_completion"
+   if [ $(uname) = "Darwin" ]; then
+      bashCompletionScript="/usr/local/etc/bash_completion"
    fi
 
-   # MUST use a TAB to indent the ending EOF or it won't work
-   source /dev/stdin <<- EOF
-      $(${BINARY_NAME} completion $SHELL_TYPE)
-	EOF
-}
+   source ${bashCompletionScript}
+else
+   echo "===================================================="
+   echo "Running completions tests on $(uname) with zsh $BASH_VERSION"
+   echo "===================================================="
+   autoload -Uz compinit
+   compinit
+   SHELL_TYPE=zsh
+fi
 
-# This method must be called at the very end of the application script
-_completionTests_end() {
-   echo '===================================================='
-   return $TEST_FAILED
-}
+source /dev/stdin <<- EOF
+   $(${BINARY_NAME} completion $SHELL_TYPE)
+EOF
+
+_completionTests_TEST_FAILED=0
 
 _completionTests_complete() {
    local cmdLine=$1
@@ -70,9 +67,11 @@ _completionTests_verifyCompletion() {
    result=$(_completionTests_complete "${cmdLine}")
 
    if [ "$result"  != "$expected" ]; then
-      TEST_FAILED=1
+      _completionTests_TEST_FAILED=1
       echo "FAIL: \"$cmdLine\" should complete to \"$expected\" but we got \"$result\""
    else
       echo "SUCCESS: \"$cmdLine\" completes to \"$result\""
    fi
+
+   return $_completionTests_TEST_FAILED
 }
