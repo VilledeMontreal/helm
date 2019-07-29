@@ -21,6 +21,16 @@ else
    compinit
 fi
 
+# Find the completion function associated with the binary.
+# $@ is the result of $(complete -p <binary>).
+_completionTests_findCompletionFunction() {
+    while [ "$1" != "-F" ]; do
+       shift
+    done
+    shift
+    echo "$1"
+}
+
 _completionTests_complete() {
    local cmdLine=$1
 
@@ -44,7 +54,7 @@ _completionTests_complete() {
        setopt kshglob noshglob braceexpand
     fi
 
-    __start_helm
+    eval $(_completionTests_findCompletionFunction $(complete -p ${COMP_WORDS[0]}))
 
     echo "${COMPREPLY[@]}"
 }
