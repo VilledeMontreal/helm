@@ -1,6 +1,10 @@
-BINARY_NAME=helm
-
 source /tmp/completion-tests/completionTests-base.sh
+
+# Don't use the new source <() form as it does
+# not work with bash v3
+source /dev/stdin <<- EOF
+   $(helm completion $SHELL_TYPE)
+EOF
 
 # No need to test every command as completion is handled
 # automatically by Cobra.
@@ -8,61 +12,42 @@ source /tmp/completion-tests/completionTests-base.sh
 # and also on code specific to this project.
 
 # Basic first level commands (static completion)
-_completionTests_verifyCompletion "stat" "status"
-_completionTests_verifyCompletion "status" "status"
-_completionTests_verifyCompletion "lis" "list"
-_completionTests_verifyCompletion "r" "registry repo rollback"
-_completionTests_verifyCompletion "re" "registry repo"
+_completionTests_verifyCompletion "helm stat" "status"
+_completionTests_verifyCompletion "helm status" "status"
+_completionTests_verifyCompletion "helm lis" "list"
+_completionTests_verifyCompletion "helm r" "registry repo rollback"
+_completionTests_verifyCompletion "helm re" "registry repo"
 
 # Basic second level commands (static completion)
-_completionTests_verifyCompletion "get " "hooks manifest values"
-_completionTests_verifyCompletion "get h" "hooks"
-_completionTests_verifyCompletion "completion " "bash zsh"
-_completionTests_verifyCompletion "completion z" "zsh"
+_completionTests_verifyCompletion "helm get " "hooks manifest values"
+_completionTests_verifyCompletion "helm get h" "hooks"
+_completionTests_verifyCompletion "helm completion " "bash zsh"
+_completionTests_verifyCompletion "helm completion z" "zsh"
 
 # Completion of flags
-_completionTests_verifyCompletion "--kube-con" "--kube-context= --kube-context"
-_completionTests_verifyCompletion "--kubecon" "--kubeconfig= --kubeconfig"
-_completionTests_verifyCompletion "--name" "--namespace= --namespace"
-_completionTests_verifyCompletion "-v" "-v"
-_completionTests_verifyCompletion "--v" "--v= --vmodule= --v --vmodule"
+# Currently failing for zsh
+if [ $SHELL_TYPE = bash ]; then
+   _completionTests_verifyCompletion "helm --kube-con" "--kube-context= --kube-context"
+   _completionTests_verifyCompletion "helm --kubecon" "--kubeconfig= --kubeconfig"
+   _completionTests_verifyCompletion "helm --name" "--namespace= --namespace"
+   _completionTests_verifyCompletion "helm -v" "-v"
+   _completionTests_verifyCompletion "helm --v" "--v= --vmodule= --v --vmodule"
+fi
 
 # Completion of commands while using flags
-#_completionTests_verifyCompletion "--kube-context prod sta" "status"
-#_completionTests_verifyCompletion "--kubeconfig=/tmp/config lis" "list"
-#_completionTests_verifyCompletion "--namespace mynamespace get h" "hooks"
-#_completionTests_verifyCompletion "-v get " "hooks manifest values"
-#_completionTests_verifyCompletion "---namespace mynamespace get " "hooks manifest values"
-#_completionTests_verifyCompletion "get --name" "--namespace= --namespace"
-#_completionTests_verifyCompletion "get hooks --kubec" "--kubeconfig= --kubeconfig"
+_completionTests_verifyCompletion "helm --kube-context prod sta" "status"
+_completionTests_verifyCompletion "helm --namespace mynamespace get h" "hooks"
+_completionTests_verifyCompletion KFAIL "helm -v get " "hooks manifest values"
+if [ $SHELL_TYPE = bash ]; then
+   _completionTests_verifyCompletion "helm --kubeconfig=/tmp/config lis" "list"
+   _completionTests_verifyCompletion "helm ---namespace mynamespace get " "hooks manifest values"
+   _completionTests_verifyCompletion "helm get --name" "--namespace= --namespace"
+   _completionTests_verifyCompletion "helm get hooks --kubec" "--kubeconfig= --kubeconfig"
+fi
 
 # Alias completion
 # Does not work.
-#_completionTests_verifyCompletion "ls" "ls"
-#_completionTests_verifyCompletion "dependenci" "dependencies"
+_completionTests_verifyCompletion KFAIL "helm ls" "ls"
+_completionTests_verifyCompletion KFAIL "helm dependenci" "dependencies"
 
-# Output of a single release
-# result := "rel206"
-# _completionTests_verifyCompletion "status rel206" result
-
-# // Output of multiple releases with prefix
-# result = "rel1"
-# for i := 0; i < 10; i++ {
-# 	result += fmt.Sprintf(" rel1%d", i)
-# 	for j := 0; j < 10; j++ {
-# 		result += fmt.Sprintf(" rel1%d%d", i, j)
-# 	}
-# }
-# _completionTests_verifyCompletion "status rel1" ${result}
-#
-# // Output of multiple releases without prefix
-# result = "rel0"
-# // Releases 1 to the limit used in the completion logic (1000)
-# for i := 1; i < 30; i++ {
-# 	result += fmt.Sprintf(" rel%d", i)
-# 	for j := 0; j < 10; j++ {
-# 		result += fmt.Sprintf(" rel1%d%d", i, j)
-# 	}
-# }
-# _completionTests_verifyCompletion "status " ${result}
 

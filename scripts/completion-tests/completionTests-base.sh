@@ -1,10 +1,4 @@
 
-if [ -z ${BINARY_NAME} ]; then
-   echo "ERROR: Main completion test script must set variable BINARY_NAME" \
-        "to the name of the binary to test, e.g. BINARY_NAME=helm"
-   exit 1
-fi
-
 SHELL_TYPE=bash
 if [ ! -z "$BASH_VERSION" ];then
    echo "===================================================="
@@ -18,19 +12,14 @@ if [ ! -z "$BASH_VERSION" ];then
 
    source ${bashCompletionScript}
 else
+   SHELL_TYPE=zsh
+
    echo "===================================================="
-   echo "Running completions tests on $(uname) with zsh $BASH_VERSION"
+   echo "Running completions tests on $(uname) with zsh $ZSH_VERSION"
    echo "===================================================="
    autoload -Uz compinit
    compinit
-   SHELL_TYPE=zsh
 fi
-
-source /dev/stdin <<- EOF
-   $(${BINARY_NAME} completion $SHELL_TYPE)
-EOF
-
-_completionTests_TEST_FAILED=0
 
 _completionTests_complete() {
    local cmdLine=$1
@@ -50,28 +39,45 @@ _completionTests_complete() {
 
    if [ $SHELL_TYPE = "zsh" ]; then
        # When zsh calls real completion, it sets some options and emulates sh.
-       # We need to do the same. We achieve that by re-using the logic of
-       # __${BINARY_NAME}_bash_source
-       __${BINARY_NAME}_bash_source <(echo "__start_${BINARY_NAME}")
-   else
-       __start_${BINARY_NAME}
-   fi
+       # We need to do the same.
+       emulate -L sh
+       setopt kshglob noshglob braceexpand
+    fi
 
-   echo "${COMPREPLY[@]}"
+    __start_helm
+
+    echo "${COMPREPLY[@]}"
 }
 
+# Global variable to keep track of if a test has failed.
+_completionTests_TEST_FAILED=0
+
+# Run completion and indicate success or failure.
+#    $1 is the command line that should be completed
+#    $2 is the expected result of the completion
+# If $1 == KFAIL this test will be skipped
 _completionTests_verifyCompletion() {
-   local cmdLine="${BINARY_NAME} $1"
+   local skip=0
+   if [ "$1" = "KFAIL" ]; then
+      skip=1
+      shift
+   fi
+
+   local cmdLine=$1
    local expected=$2
 
    result=$(_completionTests_complete "${cmdLine}")
 
-   if [ "$result"  != "$expected" ]; then
+   if [ "$result"  = "$expected" ]; then
+      echo "SUCCESS: \"$cmdLine\" completes to \"$result\""
+   elif [ $skip -eq 1 ]; then
+      echo "KFAIL: \"$cmdLine\" should complete to \"$expected\" but we got \"$result\""
+   else
       _completionTests_TEST_FAILED=1
       echo "FAIL: \"$cmdLine\" should complete to \"$expected\" but we got \"$result\""
-   else
-      echo "SUCCESS: \"$cmdLine\" completes to \"$result\""
    fi
 
+   # Return the global result each time.  This allows for the very last call to
+   # this method to return the correct success or failure code for the entire script
    return $_completionTests_TEST_FAILED
 }
