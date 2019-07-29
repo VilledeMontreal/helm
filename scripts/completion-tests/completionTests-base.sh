@@ -26,13 +26,17 @@ else
 fi
 
 # Find the completion function associated with the binary.
-# $@ is the result of $(complete -p <binary>).
+# $1 is the name of the binary for which completion was triggered.
 _completionTests_findCompletionFunction() {
-    while [ "$1" != "-F" ]; do
-       shift
+    local out=($(complete -p $1))
+    local returnNext=0
+    for i in ${out[@]}; do
+       if [ $returnNext -eq 1 ]; then
+          echo "$i"
+          return
+       fi
+       [ "$i" == "-F" ] && returnNext=1
     done
-    shift
-    echo "$1"
 }
 
 _completionTests_complete() {
@@ -51,7 +55,7 @@ _completionTests_complete() {
    # that the previous word is complete and the cursor is on the next word.
    [ "${cmdLine: -1}" = " " ] && COMP_CWORD=${#COMP_WORDS[@]}
 
-    eval $(_completionTests_findCompletionFunction $(complete -p ${COMP_WORDS[0]}))
+    eval $(_completionTests_findCompletionFunction ${COMP_WORDS[0]})
 
     echo "${COMPREPLY[@]}"
 }
