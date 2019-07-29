@@ -55,23 +55,34 @@ _completionTests_TEST_FAILED=0
 # Run completion and indicate success or failure.
 #    $1 is the command line that should be completed
 #    $2 is the expected result of the completion
-# If $1 == KFAIL this test will be skipped
+# If $1 = KFAIL indicates a Known failure
+#    $1 = BFAIL indicates a Known failure only for bash
+#    $1 = ZFAIL indicates a Known failure only for zsh
 _completionTests_verifyCompletion() {
-   local skip=0
-   if [ "$1" = "KFAIL" ]; then
-      skip=1
+   local expectedFailure="NO"
+   case $1 in
+   [K,B,Z]FAIL)
+      expectedFailure=$1
       shift
-   fi
+      ;;
+   esac
 
    local cmdLine=$1
    local expected=$2
 
    result=$(_completionTests_complete "${cmdLine}")
 
-   if [ "$result"  = "$expected" ]; then
+   if [ $expectedFailure = "KFAIL" ] ||
+           ([ $expectedFailure = "BFAIL" ] && [ $SHELL_TYPE = "bash" ]) ||
+           ([ $expectedFailure = "ZFAIL" ] && [ $SHELL_TYPE = "zsh" ]); then
+      if [ "$result" = "$expected" ]; then
+         _completionTests_TEST_FAILED=1
+         echo "UNEXPECTED SUCCESS: \"$cmdLine\" completes to \"$result\""
+      else
+         echo "$expectedFailure: \"$cmdLine\" should complete to \"$expected\" but we got \"$result\""
+      fi
+   elif [ "$result" = "$expected" ]; then
       echo "SUCCESS: \"$cmdLine\" completes to \"$result\""
-   elif [ $skip -eq 1 ]; then
-      echo "KFAIL: \"$cmdLine\" should complete to \"$expected\" but we got \"$result\""
    else
       _completionTests_TEST_FAILED=1
       echo "FAIL: \"$cmdLine\" should complete to \"$expected\" but we got \"$result\""
