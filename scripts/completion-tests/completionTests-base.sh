@@ -19,6 +19,10 @@ else
    echo "===================================================="
    autoload -Uz compinit
    compinit
+   # When zsh calls real completion, it sets some options and emulates sh.
+   # We need to do the same.
+   emulate -L sh
+   setopt kshglob noshglob braceexpand
 fi
 
 # Find the completion function associated with the binary.
@@ -46,13 +50,6 @@ _completionTests_complete() {
    # We must check for a space as the last character which will tell us
    # that the previous word is complete and the cursor is on the next word.
    [ "${cmdLine: -1}" = " " ] && COMP_CWORD=${#COMP_WORDS[@]}
-
-   if [ $SHELL_TYPE = "zsh" ]; then
-       # When zsh calls real completion, it sets some options and emulates sh.
-       # We need to do the same.
-       emulate -L sh
-       setopt kshglob noshglob braceexpand
-    fi
 
     eval $(_completionTests_findCompletionFunction $(complete -p ${COMP_WORDS[0]}))
 
