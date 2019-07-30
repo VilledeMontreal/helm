@@ -28,6 +28,7 @@ cp ${BINARY_PATH}/${BINARY_NAME} ${COMP_DIR}
 ########################################
 # Bash 4 completion tests
 ########################################
+echo;echo;
 docker build -t ${BASH4_IMAGE} - <<- EOF
    FROM bash:4.4
    RUN apk update && apk add bash-completion
@@ -42,6 +43,7 @@ docker run --rm \
 # We choose version 3.2 because we want some Bash 3 version and 3.2
 # is the version by default on MacOS.  So testing that version
 # gives us a bit of coverage for MacOS.
+echo;echo;
 docker build -t ${BASH3_IMAGE} - <<- EOF
    FROM bash:3.2
    # For bash 3.2, the bash-completion package required is version 1.3
@@ -57,6 +59,7 @@ docker run --rm \
 ########################################
 # Zsh completion tests
 ########################################
+echo;echo;
 docker build -t ${ZSH_IMAGE} - <<- EOF
    FROM zshusers/zsh:5.7
 EOF
@@ -80,10 +83,12 @@ if [ "$(uname)" == "Darwin" ]; then
    fi
 
    if [ -f /usr/local/etc/bash_completion ]; then
+      echo;echo;
       echo "Completion tests for bash running locally"
       PATH=$(pwd)/bin:$PATH bash -c "source ${COMP_SCRIPT}"
    fi
 
+   echo;echo;
    echo "Completion tests for zsh running locally"
    PATH=$(pwd)/bin:$PATH zsh -c "source ${COMP_SCRIPT}"
 fi
