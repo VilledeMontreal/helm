@@ -1,64 +1,37 @@
+#!bash
+#
+# Copyright (C) 2019 Ville de Montreal <marc.khouzam@ville.montreal.qc.ca>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 
-SHELL_TYPE=bash
-if [ ! -z "$BASH_VERSION" ];then
-   echo "===================================================="
-   echo "Running completions tests on $(uname) with bash $BASH_VERSION"
-   echo "===================================================="
-
-   bashCompletionScript="/usr/share/bash-completion/bash_completion"
-   if [ $(uname) = "Darwin" ]; then
-      bashCompletionScript="/usr/local/etc/bash_completion"
-   fi
-
-   source ${bashCompletionScript}
-else
-   SHELL_TYPE=zsh
-
-   echo "===================================================="
-   echo "Running completions tests on $(uname) with zsh $ZSH_VERSION"
-   echo "===================================================="
-   autoload -Uz compinit
-   compinit
-   # When zsh calls real completion, it sets some options and emulates sh.
-   # We need to do the same.
-   emulate -L sh
-   setopt kshglob noshglob braceexpand
-fi
-
-# Find the completion function associated with the binary.
-# $1 is the name of the binary for which completion was triggered.
-_completionTests_findCompletionFunction() {
-    local out=($(complete -p $1))
-    local returnNext=0
-    for i in ${out[@]}; do
-       if [ $returnNext -eq 1 ]; then
-          echo "$i"
-          return
-       fi
-       [ "$i" == "-F" ] && returnNext=1
-    done
-}
-
-_completionTests_complete() {
-   local cmdLine=$1
-
-   # Set the bash completion variables which are
-   # used for both bash and zsh completion
-   COMP_LINE=${cmdLine}
-   COMP_POINT=${#COMP_LINE}
-   COMP_TYPE=9 # 9 is TAB
-   COMP_KEY=9  # 9 is TAB
-   COMP_WORDS=($(echo ${cmdLine}))
-
-   COMP_CWORD=$((${#COMP_WORDS[@]}-1))
-   # We must check for a space as the last character which will tell us
-   # that the previous word is complete and the cursor is on the next word.
-   [ "${cmdLine: -1}" = " " ] && COMP_CWORD=${#COMP_WORDS[@]}
-
-    eval $(_completionTests_findCompletionFunction ${COMP_WORDS[0]})
-
-    echo "${COMPREPLY[@]}"
-}
+# This script allows to run completion tests for the bash shell.
+# It also supports zsh completion tests, when zsh is used in bash-completion
+# compatibility mode.
+#
+# To use this script one should create a test script which will:
+# 1- source this script
+# 2- source the completion script to be tested
+# 3- call repeatedly the _completionTests_verifyCompletion() function passing it
+#    the command line to be completed followed by the expected completion.
+#
+# For example, the test script can look like this:
+#
+# #!bash
+# # source completionTests-base.sh
+# # source helmCompletionScript.${SHELL_TYPE}
+# # _completionTests_verifyCompletion "helm stat" "status"
+#
 
 # Global variable to keep track of if a test has failed.
 _completionTests_TEST_FAILED=0
@@ -103,3 +76,67 @@ _completionTests_verifyCompletion() {
    # this method to return the correct success or failure code for the entire script
    return $_completionTests_TEST_FAILED
 }
+
+# Find the completion function associated with the binary.
+# $1 is the name of the binary for which completion was triggered.
+_completionTests_findCompletionFunction() {
+    local out=($(complete -p $1))
+    local returnNext=0
+    for i in ${out[@]}; do
+       if [ $returnNext -eq 1 ]; then
+          echo "$i"
+          return
+       fi
+       [ "$i" = "-F" ] && returnNext=1
+    done
+}
+
+_completionTests_complete() {
+   local cmdLine=$1
+
+   # Set the bash completion variables which are
+   # used for both bash and zsh completion
+   COMP_LINE=${cmdLine}
+   COMP_POINT=${#COMP_LINE}
+   COMP_TYPE=9 # 9 is TAB
+   COMP_KEY=9  # 9 is TAB
+   COMP_WORDS=($(echo ${cmdLine}))
+
+   COMP_CWORD=$((${#COMP_WORDS[@]}-1))
+   # We must check for a space as the last character which will tell us
+   # that the previous word is complete and the cursor is on the next word.
+   [ "${cmdLine: -1}" = " " ] && COMP_CWORD=${#COMP_WORDS[@]}
+
+   # Call the completion function associated with the binary being called.
+   eval $(_completionTests_findCompletionFunction ${COMP_WORDS[0]})
+
+   # Return the result of the completion.
+   echo "${COMPREPLY[@]}"
+}
+
+# Start of script
+SHELL_TYPE=bash
+if [ ! -z "$BASH_VERSION" ];then
+   echo "===================================================="
+   echo "Running completions tests on $(uname) with bash $BASH_VERSION"
+   echo "===================================================="
+
+   bashCompletionScript="/usr/share/bash-completion/bash_completion"
+   if [ $(uname) = "Darwin" ]; then
+      bashCompletionScript="/usr/local/etc/bash_completion"
+   fi
+
+   source ${bashCompletionScript}
+else
+   SHELL_TYPE=zsh
+
+   echo "===================================================="
+   echo "Running completions tests on $(uname) with zsh $ZSH_VERSION"
+   echo "===================================================="
+   autoload -Uz compinit
+   compinit
+   # When zsh calls real completion, it sets some options and emulates sh.
+   # We need to do the same.
+   emulate -L sh
+   setopt kshglob noshglob braceexpand
+fi
