@@ -1,6 +1,6 @@
 #!bash
 #
-# Copyright (C) 2019 Ville de Montreal <marc.khouzam@ville.montreal.qc.ca>
+# Copyright (C) 2019 Ville de Montreal
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
