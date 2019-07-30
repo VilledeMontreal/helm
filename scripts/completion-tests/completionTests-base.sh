@@ -114,6 +114,16 @@ _completionTests_complete() {
    echo "${COMPREPLY[@]}"
 }
 
+# compopt, which is only available for bash 4, I believe,
+# prints an error when it is being called outside of real shell
+# completion.  Since it doesn't work anyway in our case, let's
+# disable it to avoid the error printouts.
+# Impacts are limited to completion of flags and even then
+# for zsh and bash 3, it is not even available.
+compopt() {
+   :
+}
+
 # Start of script
 SHELL_TYPE=bash
 if [ ! -z "$BASH_VERSION" ];then
