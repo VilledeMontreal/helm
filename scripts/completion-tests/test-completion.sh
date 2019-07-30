@@ -1,12 +1,28 @@
 #!/usr/bin/env bash
+#
+# Copyright (C) 2019 Ville de Montreal <marc.khouzam@ville.montreal.qc.ca>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This script run completion tests in different environments and different shells.
+
+# Fail as soon as there is an error
+set -e
 
 SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
 
 BINARY_NAME=helm
 BINARY_PATH=${SCRIPT_DIR}/../../_dist/linux-amd64
-
-# Fail as soon as there is an error
-set -e
 
 if [ -z $(which docker) ]; then
   echo "Missing 'docker' client which is required for these tests";
@@ -16,9 +32,6 @@ fi
 COMP_DIR=/tmp/completion-tests
 COMP_SCRIPT_NAME=completionTests.sh
 COMP_SCRIPT=${COMP_DIR}/${COMP_SCRIPT_NAME}
-BASH4_IMAGE=completion-bash4
-BASH3_IMAGE=completion-bash3
-ZSH_IMAGE=completion-zsh
 
 mkdir -p ${COMP_DIR}
 cp ${SCRIPT_DIR}/${COMP_SCRIPT_NAME} ${COMP_DIR}
@@ -28,6 +41,8 @@ cp ${BINARY_PATH}/${BINARY_NAME} ${COMP_DIR}
 ########################################
 # Bash 4 completion tests
 ########################################
+BASH4_IMAGE=completion-bash4
+
 echo;echo;
 docker build -t ${BASH4_IMAGE} - <<- EOF
    FROM bash:4.4
@@ -43,6 +58,8 @@ docker run --rm \
 # We choose version 3.2 because we want some Bash 3 version and 3.2
 # is the version by default on MacOS.  So testing that version
 # gives us a bit of coverage for MacOS.
+BASH3_IMAGE=completion-bash3
+
 echo;echo;
 docker build -t ${BASH3_IMAGE} - <<- EOF
    FROM bash:3.2
@@ -59,6 +76,8 @@ docker run --rm \
 ########################################
 # Zsh completion tests
 ########################################
+ZSH_IMAGE=completion-zsh
+
 echo;echo;
 docker build -t ${ZSH_IMAGE} - <<- EOF
    FROM zshusers/zsh:5.7
