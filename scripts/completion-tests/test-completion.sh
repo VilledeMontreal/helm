@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This script run completion tests in different environments and different shells.
+# This script runs completion tests in different environments and different shells.
 
 # Fail as soon as there is an error
 set -e
