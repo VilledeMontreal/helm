@@ -14,9 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This scripts tests different scenarios of completion.  The can be
-# tested by sourcing this file from a bash shell or a zsh shell, testing
-# completion for the calling shell.
+# This script tests different scenarios of completion.  The tests can be
+# run by sourcing this file from a bash shell or a zsh shell.
 
 source /tmp/completion-tests/completionTests-base.sh
 
@@ -25,7 +24,7 @@ source /dev/stdin <<- EOF
    $(helm completion $SHELL_TYPE)
 EOF
 
-# No need to test every command as completion is handled
+# No need to test every command, as completion is handled
 # automatically by Cobra.
 # We focus on some smoke tests for the Cobra-handled completion
 # and also on code specific to this project.
