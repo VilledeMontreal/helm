@@ -63,21 +63,6 @@ func initKubeLogs() {
 	pflag.CommandLine.Set("logtostderr", "true")
 }
 
-func main() {
-	initKubeLogs()
-
-	actionConfig := new(action.Configuration)
-	cmd := newRootCmd(actionConfig, os.Stdout, os.Args[1:])
-
-	// Initialize the rest of the actionConfig
-	initActionConfig(actionConfig, false)
-
-	if err := cmd.Execute(); err != nil {
-		logf("%+v", err)
-		os.Exit(1)
-	}
-}
-
 func initActionConfig(actionConfig *action.Configuration, allNamespaces bool) {
 	kc := kube.New(kubeConfig())
 	kc.Log = logf

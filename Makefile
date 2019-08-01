@@ -2,6 +2,7 @@ BINDIR     := $(CURDIR)/bin
 DIST_DIRS  := find * -type d -exec
 TARGETS    := darwin/amd64 linux/amd64 linux/386 linux/arm linux/arm64 linux/ppc64le windows/amd64
 BINNAME    ?= helm
+FAKEBINNAME:= fake/$(BINNAME)
 
 GOPATH        = $(shell go env GOPATH)
 DEP           = $(GOPATH)/bin/dep
@@ -52,8 +53,15 @@ all: build
 .PHONY: build
 build: $(BINDIR)/$(BINNAME)
 
-$(BINDIR)/$(BINNAME): $(SRC) vendor
-	go build $(GOFLAGS) -tags '$(TAGS)' -ldflags '$(LDFLAGS)' -o $(BINDIR)/$(BINNAME) helm.sh/helm/cmd/helm
+$(BINDIR)/$(BINNAME) $(BINDIR)/$(FAKEBINNAME): $(SRC) vendor
+	go build $(GOFLAGS) -tags '$(TAGS)' -ldflags '$(LDFLAGS)' -o $@ helm.sh/helm/cmd/helm
+
+.PHONY: build-completion-fake-client
+build-completion-fake-client: TAGS += completion_fake_client
+build-completion-fake-client: $(BINDIR)/$(FAKEBINNAME)
+build-completion-fake-client: TARGETS = linux/amd64
+build-completion-fake-client: BINNAME = $(FAKEBINNAME)
+build-completion-fake-client: build-cross
 
 # ------------------------------------------------------------------------------
 #  test
@@ -82,8 +90,7 @@ test-style: vendor $(GOLANGCI_LINT)
 	@scripts/validate-license.sh
 
 .PHONY: test-completion
-test-completion: TARGETS = linux/amd64
-test-completion: build build-cross
+test-completion: build-completion-fake-client
 test-completion:
 	scripts/completion-tests/test-completion.sh
 

@@ -22,7 +22,8 @@ set -e
 SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
 
 BINARY_NAME=helm
-BINARY_PATH=${SCRIPT_DIR}/../../_dist/linux-amd64
+BINARY_PATH_DOCKER=${SCRIPT_DIR}/../../_dist/linux-amd64/fake
+BINARY_PATH_LOCAL=${SCRIPT_DIR}/../../bin/fake
 
 if [ -z $(which docker) ]; then
   echo "Missing 'docker' client which is required for these tests";
@@ -36,7 +37,7 @@ COMP_SCRIPT=${COMP_DIR}/${COMP_SCRIPT_NAME}
 mkdir -p ${COMP_DIR}/lib
 cp ${SCRIPT_DIR}/${COMP_SCRIPT_NAME} ${COMP_DIR}
 cp ${SCRIPT_DIR}/lib/completionTests-base.sh ${COMP_DIR}/lib
-cp ${BINARY_PATH}/${BINARY_NAME} ${COMP_DIR}
+cp ${BINARY_PATH_DOCKER}/${BINARY_NAME} ${COMP_DIR}
 
 ########################################
 # Bash 4 completion tests
@@ -92,24 +93,29 @@ docker run --rm \
 # Since we can't use Docker to test MacOS,
 # we run the MacOS tests locally when possible.
 if [ "$(uname)" == "Darwin" ]; then
+   echo;echo
+   echo "===================================================="
+   echo "Attempting local completion tests on Darwin"
+   echo "===================================================="
+
    # Make sure that for the local tests, the tests will find the newly
    # built binary.  If for some reason the binary to test is not present
    # the tests may use the default binary installed on localhost and we
    # won't be testing the right thing.  So we check here.
-   if [ $(PATH=$(pwd)/bin:$PATH which ${BINARY_NAME}) != $(pwd)/bin/${BINARY_NAME} ]; then
-      echo "Cannot find ${BINARY_NAME} under $(pwd)/bin/${BINARY_NAME} although it is what we need to test."
+   if [ $(PATH=${BINARY_PATH_LOCAL}:$PATH which ${BINARY_NAME}) != ${BINARY_PATH_LOCAL}/${BINARY_NAME} ]; then
+      echo "Cannot find ${BINARY_NAME} under ${BINARY_PATH_LOCAL}/${BINARY_NAME} although it is what we need to test."
       exit 1
    fi
 
    if which bash>/dev/null && [ -f /usr/local/etc/bash_completion ]; then
       echo;echo;
       echo "Completion tests for bash running locally"
-      PATH=$(pwd)/bin:$PATH bash -c "source ${COMP_SCRIPT}"
+      PATH=${BINARY_PATH_LOCAL}:$PATH bash -c "source ${COMP_SCRIPT}"
    fi
 
    if which zsh>/dev/null; then
       echo;echo;
       echo "Completion tests for zsh running locally"
-      PATH=$(pwd)/bin:$PATH zsh -c "source ${COMP_SCRIPT}"
+      PATH=${BINARY_PATH_LOCAL}:$PATH zsh -c "source ${COMP_SCRIPT}"
    fi
 fi
