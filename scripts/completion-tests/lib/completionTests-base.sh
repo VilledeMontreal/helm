@@ -59,17 +59,22 @@ _completionTests_verifyCompletion() {
    result=$(_completionTests_sort "$result")
    expected=$(_completionTests_sort "$expected")
 
+   resultOut="$result"
+   if [ "${#result}" -gt 50 ]; then
+      resultOut="${result:0:50} <truncated>"
+   fi
+
    if [ $expectedFailure = "KFAIL" ] ||
            ([ $expectedFailure = "BFAIL" ] && [ $SHELL_TYPE = "bash" ]) ||
            ([ $expectedFailure = "ZFAIL" ] && [ $SHELL_TYPE = "zsh" ]); then
       if [ "$result" = "$expected" ]; then
          _completionTests_TEST_FAILED=1
-         echo "UNEXPECTED SUCCESS: \"$cmdLine\" completes to \"$result\""
+         echo "UNEXPECTED SUCCESS: \"$cmdLine\" completes to \"$resultOut\""
       else
-         echo "$expectedFailure: \"$cmdLine\" should complete to \"$expected\" but we got \"$result\""
+         echo "$expectedFailure: \"$cmdLine\" should complete to \"$expected\" but we got \"$resultOut\""
       fi
    elif [ "$result" = "$expected" ]; then
-      echo "SUCCESS: \"$cmdLine\" completes to \"$result\""
+      echo "SUCCESS: \"$cmdLine\" completes to \"$resultOut\""
    else
       _completionTests_TEST_FAILED=1
       echo "FAIL: \"$cmdLine\" should complete to \"$expected\" but we got \"$result\""
