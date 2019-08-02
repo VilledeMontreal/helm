@@ -56,6 +56,9 @@ _completionTests_verifyCompletion() {
 
    result=$(_completionTests_complete "${cmdLine}")
 
+   result=$(_completionTests_sort "$result")
+   expected=$(_completionTests_sort "$expected")
+
    if [ $expectedFailure = "KFAIL" ] ||
            ([ $expectedFailure = "BFAIL" ] && [ $SHELL_TYPE = "bash" ]) ||
            ([ $expectedFailure = "ZFAIL" ] && [ $SHELL_TYPE = "zsh" ]); then
@@ -75,6 +78,22 @@ _completionTests_verifyCompletion() {
    # Return the global result each time.  This allows for the very last call to
    # this method to return the correct success or failure code for the entire script
    return $_completionTests_TEST_FAILED
+}
+
+_completionTests_disable_sort() {
+    _completionTests_DISABLE_SORT=1
+}
+
+_completionTests_enable_sort() {
+    unset _completionTests_DISABLE_SORT
+}
+
+_completionTests_sort() {
+   if [ -n "${_completionTests_DISABLE_SORT}" ]; then
+      echo "$1"
+   else
+      echo $(echo "$1" | tr ' ' '\n' | sort -n)
+   fi
 }
 
 # Find the completion function associated with the binary.

@@ -33,7 +33,7 @@ EOF
 _completionTests_verifyCompletion "helm stat" "status"
 _completionTests_verifyCompletion "helm status" "status"
 _completionTests_verifyCompletion "helm lis" "list"
-_completionTests_verifyCompletion "helm r" "registry repo rollback"
+_completionTests_verifyCompletion "helm r" "rollback registry repo"
 _completionTests_verifyCompletion "helm re" "registry repo"
 
 # Basic second level commands (static completion)
