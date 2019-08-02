@@ -24,6 +24,10 @@ source /dev/stdin <<- EOF
    $(helm completion $SHELL_TYPE)
 EOF
 
+####################
+# Static completion
+####################
+
 # No need to test every command, as completion is handled
 # automatically by Cobra.
 # We focus on some smoke tests for the Cobra-handled completion
@@ -62,3 +66,50 @@ _completionTests_verifyCompletion "helm --namespace mynamespace get h" "hooks"
 # Does not work.
 #_completionTests_verifyCompletion KFAIL "helm ls" "ls"
 #_completionTests_verifyCompletion KFAIL "helm dependenci" "dependencies"
+
+#####################
+# Dynamic completion
+#####################
+#
+# Completion of a single release
+_completionTests_verifyCompletion "helm status rel306" "rel306"
+
+# Completion of multiple releases with a prefix
+prefix="rel10"
+result="$prefix"
+for i in {0..9}; do
+   result+=" $prefix$i"
+   for j in {0..9}; do
+      result+=" $prefix$i$j"
+   done
+done
+_completionTests_verifyCompletion "helm status $prefix" "$result"
+
+# Completion of multiple releases without prefix
+result="rel1"
+# Releases 0 to the limit used in the completion logic (1000)
+for i in 1; do
+   for j in {0..8}; do
+      result+=" rel$i$j"
+      for k in {0..9}; do
+         result+=" rel$i$j$k"
+         for l in {0..9}; do
+            result+=" rel$i$j$k$l"
+         done
+      done
+   done
+done
+_completionTests_verifyCompletion "helm status " "$result"
+
+# Completion of a single release for all other commands that take
+# a release as a parameter
+_completionTests_verifyCompletion "helm uninstall rel2345" "rel2345"
+_completionTests_verifyCompletion "helm history rel2345" "rel2345"
+_completionTests_verifyCompletion "helm test run rel2345" "rel2345"
+_completionTests_verifyCompletion "helm upgrade rel2345" "rel2345"
+_completionTests_verifyCompletion "helm rollback rel2345" "rel2345"
+
+# Completion of a release that does not exist
+_completionTests_verifyCompletion "helm status WRONG" ""
+
+# helm_get_*

@@ -34,7 +34,7 @@ import (
 )
 
 const (
-	completionNumTestReleases   = 300
+	completionNumTestReleases   = 3000
 	completionSampleTimeSeconds = int64(46966690)
 )
 
@@ -59,7 +59,7 @@ func main() {
 func createFakeStore() *storage.Storage {
 	store := storage.Init(driver.NewMemory())
 
-	for i := 0; i < completionNumTestReleases; i++ {
+	for i := 1; i < completionNumTestReleases; i++ {
 		store.Create(&release.Release{
 			Name:      "rel" + strconv.Itoa(i),
 			Version:   i,
