@@ -2,6 +2,7 @@ BINDIR     := $(CURDIR)/bin
 DIST_DIRS  := find * -type d -exec
 TARGETS    := darwin/amd64 linux/amd64 linux/386 linux/arm linux/arm64 linux/ppc64le windows/amd64
 BINNAME    ?= helm
+ACCEPTANCE_DIR:=../acceptance-testing
 
 GOPATH        = $(shell go env GOPATH)
 DEP           = $(GOPATH)/bin/dep
@@ -80,6 +81,18 @@ test-coverage: vendor
 test-style: vendor $(GOLANGCI_LINT)
 	$(GOLANGCI_LINT) run
 	@scripts/validate-license.sh
+
+.PHONY: test-completion
+test-completion: TARGETS = linux/amd64
+test-completion: build build-cross
+test-completion:
+	@if [ -d "${ACCEPTANCE_DIR}" ]; then \
+		cd ${ACCEPTANCE_DIR} && \
+			ROBOT_RUN_TESTS=shells.robot ROBOT_HELM_PATH=$(BINDIR) make acceptance; \
+	else \
+		echo "You must install the acceptance_testing repo under $(GOPATH)/src/helm.sh"; \
+		echo "You can find the acceptance_testing repo at https://github.com/helm/acceptance-testing"; \
+	fi
 
 .PHONY: verify-docs
 verify-docs: build
