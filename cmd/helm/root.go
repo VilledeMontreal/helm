@@ -234,9 +234,15 @@ __helm_list_repos()
 __helm_list_plugins()
 {
     __helm_debug "${FUNCNAME[0]}: c is $c words[c] is ${words[c]}"
-    local out
-    # Use eval in case helm_binary_name contains a variable (e.g., $HOME/bin/h3)
-    if out=$(eval $(__helm_binary_name) plugin list 2>/dev/null | tail +2 | cut -f1); then
+    local out extraParam
+
+    # If the last parameter is complete (there is a space following it), we
+    # add an extra fake parameter at the end to indicate this to the plugin.
+    # For example "helm plugin update <TAB>" should complete differently than "helm plugin update pu<TAB>"
+    extraParam="__complete__"
+    [ $c -eq ${#words[@]} ] && extraParam="_ $extraParam"
+
+    if out=$(eval ${words[@]} ${extraParam} 2>/dev/null); then
         COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
     fi
 }
@@ -295,6 +301,8 @@ __helm_custom_func()
     esac
 }
 `
+
+	completionCmdParamName = "__complete__"
 )
 
 var (

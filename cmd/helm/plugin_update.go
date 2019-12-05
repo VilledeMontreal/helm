@@ -29,7 +29,8 @@ import (
 )
 
 type pluginUpdateOptions struct {
-	names []string
+	names         []string
+	forCompletion bool
 }
 
 func newPluginUpdateCmd(out io.Writer) *cobra.Command {
@@ -49,9 +50,16 @@ func newPluginUpdateCmd(out io.Writer) *cobra.Command {
 }
 
 func (o *pluginUpdateOptions) complete(args []string) error {
+	if len(args) > 0 && args[len(args)-1] == completionCmdParamName {
+		o.forCompletion = true
+		args = args[:len(args)-1]
+		return nil
+	}
+
 	if len(args) == 0 {
 		return errors.New("please provide plugin name to update")
 	}
+
 	o.names = args
 	return nil
 }
@@ -63,6 +71,12 @@ func (o *pluginUpdateOptions) run(out io.Writer) error {
 	if err != nil {
 		return err
 	}
+
+	if o.forCompletion {
+		doCompletion(plugins)
+		return nil
+	}
+
 	var errorPlugins []string
 
 	for _, name := range o.names {
@@ -107,4 +121,10 @@ func updatePlugin(p *plugin.Plugin) error {
 	}
 
 	return runHook(updatedPlugin, plugin.Update)
+}
+
+func doCompletion(plugins []*plugin.Plugin) {
+	for _, p := range plugins {
+		fmt.Println(p.Metadata.Name)
+	}
 }
