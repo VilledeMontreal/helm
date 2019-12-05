@@ -49,6 +49,14 @@ func newRepoRemoveCmd(out io.Writer) *cobra.Command {
 			o.name = args[0]
 			return o.run(out)
 		},
+		RunCompletion: func(cmd *cobra.Command, args []string) {
+			f, err := repo.LoadFile(settings.RepositoryConfig)
+			if !isNotExist(err) && len(f.Repositories) > 0 {
+				for _, repo := range f.Repositories {
+					fmt.Println(repo.Name)
+				}
+			}
+		},
 	}
 
 	return cmd

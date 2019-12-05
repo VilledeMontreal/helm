@@ -231,7 +231,7 @@ __helm_list_repos()
     fi
 }
 
-__helm_list_plugins()
+__helm_dynamic_completion()
 {
     __helm_debug "${FUNCNAME[0]}: c is $c words[c] is ${words[c]}"
     local out extraParam
@@ -288,12 +288,8 @@ __helm_custom_func()
             __helm_list_releases
             return
             ;;
-        helm_repo_remove)
-            __helm_list_repos
-            return
-            ;;
-        helm_plugin_uninstall | helm_plugin_update)
-            __helm_list_plugins
+        helm_repo_remove | helm_plugin_uninstall | helm_plugin_update)
+            __helm_dynamic_completion
             return
             ;;
         *)

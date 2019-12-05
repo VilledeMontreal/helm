@@ -43,6 +43,14 @@ func newPluginUninstallCmd(out io.Writer) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return o.run(out)
 		},
+		RunCompletion: func(cmd *cobra.Command, args []string) {
+			plugins, err := findPlugins(settings.PluginsDirectory)
+			if err == nil {
+				for _, p := range plugins {
+					fmt.Println(p.Metadata.Name)
+				}
+			}
+		},
 	}
 	return cmd
 }
