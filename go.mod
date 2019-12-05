@@ -19,14 +19,12 @@ require (
 	github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c // indirect
 	github.com/emicklei/go-restful v2.11.1+incompatible // indirect
 	github.com/evanphx/json-patch v4.5.0+incompatible
-	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-openapi/jsonreference v0.19.3 // indirect
 	github.com/go-openapi/spec v0.19.4 // indirect
 	github.com/gobwas/glob v0.2.3
 	github.com/gofrs/flock v0.7.1
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/groupcache v0.0.0-20191027212112-611e8accdfc9 // indirect
-	github.com/google/btree v1.0.0 // indirect
 	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/googleapis/gnostic v0.3.1 // indirect
 	github.com/gosuri/uitable v0.0.1
@@ -85,6 +83,7 @@ replace (
 	// to the one oras needs. If oras is updated the version should be updated
 	// as well.
 	github.com/miekg/dns => github.com/miekg/dns v0.0.0-20181005163659-0d29b283ac0f
+	github.com/spf13/cobra => /Users/marckhouzam/git/cobra
 	gopkg.in/inf.v0 v0.9.1 => github.com/go-inf/inf v0.9.1
 	gopkg.in/square/go-jose.v2 v2.3.0 => github.com/square/go-jose v2.3.0+incompatible
 

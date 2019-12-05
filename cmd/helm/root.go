@@ -240,7 +240,7 @@ __helm_list_plugins()
     # add an extra fake parameter at the end to indicate this to the plugin.
     # For example "helm plugin update <TAB>" should complete differently than "helm plugin update pu<TAB>"
     extraParam="__complete__"
-    [ $c -eq ${#words[@]} ] && extraParam="_ $extraParam"
+#TODO    [ $c -eq ${#words[@]} ] && extraParam="_ $extraParam"
 
     if out=$(eval ${words[@]} ${extraParam} 2>/dev/null); then
         COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
@@ -301,8 +301,6 @@ __helm_custom_func()
     esac
 }
 `
-
-	completionCmdParamName = "__complete__"
 )
 
 var (
