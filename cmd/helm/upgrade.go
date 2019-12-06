@@ -19,6 +19,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -70,6 +71,27 @@ func newUpgradeCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		Short: "upgrade a release",
 		Long:  upgradeDesc,
 		Args:  require.ExactArgs(2),
+		ValidArgsFunc: func(cmd *cobra.Command, args []string) ([]string, cobra.BashCompDirective) {
+			numParam := 0
+			for i := 0; i < len(args); i++ {
+				// Count the number of parameters, ignoring flags
+				if len(args[i]) == 0 || args[i][0] != '-' {
+					numParam++
+				} else {
+					if strings.Contains(args[i], "=") {
+						// It's a flag without an =, skip next arg
+						i++
+					}
+				}
+			}
+			if numParam == 1 {
+				return compListReleases(cfg, cmd, args)
+			}
+			if numParam == 2 {
+				return compListCharts(cmd, args[1:], true)
+			}
+			return []string{}, cobra.BashCompDirectiveNoFileComp
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client.Namespace = settings.Namespace()
 

@@ -40,16 +40,11 @@ func newPluginUninstallCmd(out io.Writer) *cobra.Command {
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return o.complete(args)
 		},
+		ValidArgsFunc: func(cmd *cobra.Command, args []string) ([]string, cobra.BashCompDirective) {
+			return compListPlugins(cmd, args)
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return o.run(out)
-		},
-		RunCompletion: func(cmd *cobra.Command, args []string) {
-			plugins, err := findPlugins(settings.PluginsDirectory)
-			if err == nil {
-				for _, p := range plugins {
-					fmt.Println(p.Metadata.Name)
-				}
-			}
 		},
 	}
 	return cmd

@@ -43,19 +43,17 @@ func newRepoRemoveCmd(out io.Writer) *cobra.Command {
 		Aliases: []string{"rm"},
 		Short:   "remove a chart repository",
 		Args:    require.ExactArgs(1),
+		ValidArgsFunc: func(cmd *cobra.Command, args []string) ([]string, cobra.BashCompDirective) {
+			if len(args) != 1 {
+				return []string{}, cobra.BashCompDirectiveNoFileComp
+			}
+			return compListRepos(args[0]), cobra.BashCompDirectiveNoFileComp
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			o.repoFile = settings.RepositoryConfig
 			o.repoCache = settings.RepositoryCache
 			o.name = args[0]
 			return o.run(out)
-		},
-		RunCompletion: func(cmd *cobra.Command, args []string) {
-			f, err := repo.LoadFile(settings.RepositoryConfig)
-			if !isNotExist(err) && len(f.Repositories) > 0 {
-				for _, repo := range f.Repositories {
-					fmt.Println(repo.Name)
-				}
-			}
 		},
 	}
 

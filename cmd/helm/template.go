@@ -55,6 +55,9 @@ func newTemplateCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		Short: fmt.Sprintf("locally render templates"),
 		Long:  templateDesc,
 		Args:  require.MinimumNArgs(1),
+		ValidArgsFunc: func(cmd *cobra.Command, args []string) ([]string, cobra.BashCompDirective) {
+			return compInstall(cmd, args)
+		},
 		RunE: func(_ *cobra.Command, args []string) error {
 			client.DryRun = true
 			client.ReleaseName = "RELEASE-NAME"

@@ -18,6 +18,7 @@ package main
 
 import (
 	"io"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -111,6 +112,9 @@ func newInstallCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		Short: "install a chart",
 		Long:  installDesc,
 		Args:  require.MinimumNArgs(1),
+		ValidArgsFunc: func(cmd *cobra.Command, args []string) ([]string, cobra.BashCompDirective) {
+			return compInstall(cmd, args)
+		},
 		RunE: func(_ *cobra.Command, args []string) error {
 			rel, err := runInstall(args, client, valueOpts, out)
 			if err != nil {
@@ -219,4 +223,23 @@ func isChartInstallable(ch *chart.Chart) (bool, error) {
 		return true, nil
 	}
 	return false, errors.Errorf("%s charts are not installable", ch.Metadata.Type)
+}
+
+func compInstall(cmd *cobra.Command, args []string) ([]string, cobra.BashCompDirective) {
+	numParam := 0
+	for i := 0; i < len(args); i++ {
+		// Count the number of parameters, ignoring flags
+		if len(args[i]) == 0 || args[i][0] != '-' {
+			numParam++
+		} else {
+			if strings.Contains(args[i], "=") {
+				// It's a flag without an =, skip next arg
+				i++
+			}
+		}
+	}
+	if numParam == 2 {
+		return compListCharts(cmd, args[1:], true)
+	}
+	return []string{}, cobra.BashCompDirectiveNoFileComp
 }

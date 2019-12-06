@@ -47,6 +47,9 @@ func newUninstallCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		Short:      "uninstall a release",
 		Long:       uninstallDesc,
 		Args:       require.MinimumNArgs(1),
+		ValidArgsFunc: func(cmd *cobra.Command, args []string) ([]string, cobra.BashCompDirective) {
+			return compListReleases(cfg, cmd, args)
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			for i := 0; i < len(args); i++ {
 

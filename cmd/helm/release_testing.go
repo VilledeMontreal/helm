@@ -45,6 +45,9 @@ func newReleaseTestCmd(cfg *action.Configuration, out io.Writer) *cobra.Command 
 		Short: "run tests for a release",
 		Long:  releaseTestHelp,
 		Args:  require.ExactArgs(1),
+		ValidArgsFunc: func(cmd *cobra.Command, args []string) ([]string, cobra.BashCompDirective) {
+			return compListReleases(cfg, cmd, args)
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client.Namespace = settings.Namespace()
 			rel, runErr := client.Run(args[0])

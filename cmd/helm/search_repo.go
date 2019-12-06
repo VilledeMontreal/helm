@@ -19,6 +19,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"path/filepath"
 	"strings"
 
@@ -245,4 +246,120 @@ func (r *repoSearchWriter) encodeByFormat(out io.Writer, format output.Format) e
 	// Because this is a non-exported function and only called internally by
 	// WriteJSON and WriteYAML, we shouldn't get invalid types
 	return nil
+}
+
+func compListChartsOfRepo(repoName string, arg string) []string {
+	f := filepath.Join(settings.RepositoryCache, helmpath.CacheIndexFile(repoName))
+	var charts []string
+	if indexFile, err := repo.LoadIndexFile(f); err == nil {
+		for name := range indexFile.Entries {
+			fullName := fmt.Sprintf("%s/%s", repoName, name)
+			if strings.HasPrefix(fullName, arg) {
+				charts = append(charts, fullName)
+			}
+		}
+	}
+	return charts
+}
+
+func compListCharts(cmd *cobra.Command, args []string, includeFiles bool) ([]string, cobra.BashCompDirective) {
+	for i, a := range args {
+		cobra.CompDebugln(fmt.Sprintf("compListCharts arg %d: %s", i, a))
+	}
+
+	if len(args) != 1 {
+		return []string{}, cobra.BashCompDirectiveNoFileComp
+	}
+
+	noSpace := false
+	noFile := false
+	var completions []string
+
+	// First check completions for repos
+	repos := compListRepos("")
+	arg := args[0]
+	for _, repo := range repos {
+		repoWithSlash := fmt.Sprintf("%s/", repo)
+		if strings.HasPrefix(arg, repoWithSlash) {
+			// Must complete with charts within the specified repo
+			completions = append(completions, compListChartsOfRepo(repo, arg)...)
+			noSpace = false
+			break
+		} else if strings.HasPrefix(repo, arg) {
+			// Must complete the repo name
+			completions = append(completions, repoWithSlash)
+			noSpace = true
+		}
+	}
+	cobra.CompDebugln(fmt.Sprintf("Completions after repos: %v", completions))
+
+	// Now handle completions for url prefixes
+	for _, url := range []string{"https://", "http://", "file://"} {
+		if strings.HasPrefix(arg, url) {
+			// The user already put in the full url prefix; we don't have
+			// anything to add, but make sure the shell does not default
+			// to file completion since we could be returning an empty array.
+			noFile = true
+			noSpace = true
+		} else if strings.HasPrefix(url, arg) {
+			// We are completing a url prefix
+			completions = append(completions, url)
+			noSpace = true
+		}
+	}
+	cobra.CompDebugln(fmt.Sprintf("Completions after urls: %v", completions))
+
+	// Finally, provide file completion if we need to.
+	// We only do this if:
+	// 1- There are other completions found (if there are no completions,
+	//    the shell will do file completion itself)
+	// 2- If there is some input from the user (or else we will end up
+	//    listing the entire content of the current directory which will
+	//    be too many choices for the user to find the real repos)
+	if includeFiles && len(completions) > 0 && len(arg) > 0 {
+		if files, err := ioutil.ReadDir("."); err == nil {
+			for _, file := range files {
+				if strings.HasPrefix(file.Name(), arg) {
+					// We are completing a file prefix
+					completions = append(completions, file.Name())
+				}
+			}
+		}
+	}
+	cobra.CompDebugln(fmt.Sprintf("Completions after files: %v", completions))
+
+	// If the user didn't provide any input to completion,
+	// we provide a hint that a path can also be used
+	if includeFiles && len(arg) == 0 {
+		completions = append(completions, "./", "/")
+	}
+	cobra.CompDebugln(fmt.Sprintf("Completions after checking empty input: %v", completions))
+
+	directive := cobra.BashCompDirectiveDefault
+	if noFile {
+		directive = directive | cobra.BashCompDirectiveNoFileComp
+	}
+	if noSpace {
+		directive = directive | cobra.BashCompDirectiveNoSpace
+		// The cobra.BashCompDirective flags do not work for zsh right now.
+		// We handle it ourselves instead.
+		completions = compEnforceNoSpace(completions)
+	}
+	return completions, directive
+}
+
+// This function prevents the shell from adding a space after
+// a completion by adding a second, fake completion.
+// It is only needed for zsh, but we cannot tell which shell
+// is being used here, so we do the fake completion all the time.
+func compEnforceNoSpace(completions []string) []string {
+
+	// To prevent the shell from adding space after the completion,
+	// we trick it by pretending there is a second, longer match.
+	// We only do this if there is a single choice for completion.
+	if len(completions) == 1 {
+		completions = append(completions, completions[0]+".")
+		cobra.CompDebugln(fmt.Sprintf("compEnforceNoSpace: completions now are %v", completions))
+	}
+	return completions
 }

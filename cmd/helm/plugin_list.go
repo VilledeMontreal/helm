@@ -18,6 +18,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/gosuri/uitable"
 	"github.com/spf13/cobra"
@@ -45,4 +46,22 @@ func newPluginListCmd(out io.Writer) *cobra.Command {
 		},
 	}
 	return cmd
+}
+
+func compListPlugins(cmd *cobra.Command, args []string) ([]string, cobra.BashCompDirective) {
+	if len(args) != 1 {
+		return []string{}, cobra.BashCompDirectiveNoFileComp
+	}
+
+	var pNames []string
+	arg := args[0]
+	plugins, err := findPlugins(settings.PluginsDirectory)
+	if err == nil {
+		for _, p := range plugins {
+			if strings.HasPrefix(p.Metadata.Name, arg) {
+				pNames = append(pNames, p.Metadata.Name)
+			}
+		}
+	}
+	return pNames, cobra.BashCompDirectiveNoFileComp
 }

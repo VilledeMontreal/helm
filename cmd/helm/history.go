@@ -59,6 +59,9 @@ func newHistoryCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		Short:   "fetch release history",
 		Aliases: []string{"hist"},
 		Args:    require.ExactArgs(1),
+		ValidArgsFunc: func(cmd *cobra.Command, args []string) ([]string, cobra.BashCompDirective) {
+			return compListReleases(cfg, cmd, args)
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			history, err := getHistory(client, args[0])
 			if err != nil {

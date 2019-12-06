@@ -66,6 +66,9 @@ func newShowCmd(out io.Writer) *cobra.Command {
 		Short: "shows all information of the chart",
 		Long:  showAllDesc,
 		Args:  require.ExactArgs(1),
+		ValidArgsFunc: func(cmd *cobra.Command, args []string) ([]string, cobra.BashCompDirective) {
+			return compListCharts(cmd, args, true)
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client.OutputFormat = action.ShowAll
 			cp, err := client.ChartPathOptions.LocateChart(args[0], settings)
@@ -86,6 +89,9 @@ func newShowCmd(out io.Writer) *cobra.Command {
 		Short: "shows the chart's values",
 		Long:  showValuesDesc,
 		Args:  require.ExactArgs(1),
+		ValidArgsFunc: func(cmd *cobra.Command, args []string) ([]string, cobra.BashCompDirective) {
+			return compListCharts(cmd, args, true)
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client.OutputFormat = action.ShowValues
 			cp, err := client.ChartPathOptions.LocateChart(args[0], settings)
@@ -106,6 +112,9 @@ func newShowCmd(out io.Writer) *cobra.Command {
 		Short: "shows the chart's definition",
 		Long:  showChartDesc,
 		Args:  require.ExactArgs(1),
+		ValidArgsFunc: func(cmd *cobra.Command, args []string) ([]string, cobra.BashCompDirective) {
+			return compListCharts(cmd, args, true)
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client.OutputFormat = action.ShowChart
 			cp, err := client.ChartPathOptions.LocateChart(args[0], settings)
@@ -126,6 +135,9 @@ func newShowCmd(out io.Writer) *cobra.Command {
 		Short: "shows the chart's README",
 		Long:  readmeChartDesc,
 		Args:  require.ExactArgs(1),
+		ValidArgsFunc: func(cmd *cobra.Command, args []string) ([]string, cobra.BashCompDirective) {
+			return compListCharts(cmd, args, true)
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client.OutputFormat = action.ShowReadme
 			cp, err := client.ChartPathOptions.LocateChart(args[0], settings)

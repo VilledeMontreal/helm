@@ -164,3 +164,30 @@ func (r *releaseListWriter) WriteJSON(out io.Writer) error {
 func (r *releaseListWriter) WriteYAML(out io.Writer) error {
 	return output.EncodeYAML(out, r.releases)
 }
+
+func compListReleases(cfg *action.Configuration, cmd *cobra.Command, args []string) ([]string, cobra.BashCompDirective) {
+	for i, a := range args {
+		cobra.CompDebugln(fmt.Sprintf("compListReleases arg %d: %s", i, a))
+	}
+	if len(args) != 1 {
+		return []string{}, cobra.BashCompDirectiveNoFileComp
+	}
+
+	client := action.NewList(cfg)
+	client.All = true
+	client.Limit = 0
+	client.Filter = fmt.Sprintf("^%s", args[0])
+
+	client.SetStateMask()
+	results, err := client.Run()
+	if err != nil {
+		return []string{}, cobra.BashCompDirectiveDefault
+	}
+
+	var choices []string
+	for _, res := range results {
+		choices = append(choices, res.Name)
+	}
+
+	return choices, cobra.BashCompDirectiveNoFileComp
+}

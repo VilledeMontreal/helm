@@ -45,6 +45,9 @@ func newGetValuesCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		Short: "download the values file for a named release",
 		Long:  getValuesHelp,
 		Args:  require.ExactArgs(1),
+		ValidArgsFunc: func(cmd *cobra.Command, args []string) ([]string, cobra.BashCompDirective) {
+			return compListReleases(cfg, cmd, args)
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			vals, err := client.Run(args[0])
 			if err != nil {

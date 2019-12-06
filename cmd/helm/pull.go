@@ -50,6 +50,9 @@ func newPullCmd(out io.Writer) *cobra.Command {
 		Aliases: []string{"fetch"},
 		Long:    pullDesc,
 		Args:    require.MinimumNArgs(1),
+		ValidArgsFunc: func(cmd *cobra.Command, args []string) ([]string, cobra.BashCompDirective) {
+			return compListCharts(cmd, args, false)
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client.Settings = settings
 			if client.Version == "" && client.Devel {

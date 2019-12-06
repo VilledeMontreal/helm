@@ -40,6 +40,9 @@ func newGetHooksCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		Short: "download all hooks for a named release",
 		Long:  getHooksHelp,
 		Args:  require.ExactArgs(1),
+		ValidArgsFunc: func(cmd *cobra.Command, args []string) ([]string, cobra.BashCompDirective) {
+			return compListReleases(cfg, cmd, args)
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			res, err := client.Run(args[0])
 			if err != nil {

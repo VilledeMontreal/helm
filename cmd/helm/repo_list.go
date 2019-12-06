@@ -18,6 +18,7 @@ package main
 
 import (
 	"io"
+	"strings"
 
 	"github.com/gosuri/uitable"
 	"github.com/pkg/errors"
@@ -94,4 +95,18 @@ func (r *repoListWriter) encodeByFormat(out io.Writer, format output.Format) err
 	// Because this is a non-exported function and only called internally by
 	// WriteJSON and WriteYAML, we shouldn't get invalid types
 	return nil
+}
+
+func compListRepos(arg string) []string {
+	var rNames []string
+
+	f, err := repo.LoadFile(settings.RepositoryConfig)
+	if !isNotExist(err) && len(f.Repositories) > 0 {
+		for _, repo := range f.Repositories {
+			if strings.HasPrefix(repo.Name, arg) {
+				rNames = append(rNames, repo.Name)
+			}
+		}
+	}
+	return rNames
 }
