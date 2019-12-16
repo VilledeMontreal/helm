@@ -97,6 +97,11 @@ __helm_output_options()
     __helm_debug "${FUNCNAME[0]}: c is $c words[c] is ${words[c]}"
     COMPREPLY+=( $( compgen -W "%[1]s" -- "$cur" ) )
 }
+
+# Have an empty version of this method.
+# This will make sure we don't mistakenly fall on the __custom_func
+# of an other program, during an error case.
+__helm_custom_func() {}
 `
 )
 
