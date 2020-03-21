@@ -131,6 +131,121 @@ __helm_custom_func()
 `, CompRequestCmd, BashCompDirectiveError, BashCompDirectiveNoSpace, BashCompDirectiveNoFileComp)
 }
 
+// GenZshCompletion returns the zsh script to handle completion fully
+// This should eventually be provided by Cobra
+func GenZshCompletion(out io.Writer, completionNoDesc bool) error {
+	compCmd := CompWithDescRequestCmd
+	if completionNoDesc {
+		compCmd = CompRequestCmd
+	}
+	zshScript := fmt.Sprintf(`# zsh completion for helm            -*- shell-script -*-
+
+__helm_do_completion()
+{
+    local lastParam lastChar flagPrefix requestComp out directive compCount comp lastComp
+    local -a completions
+
+    __helm_debug "\n========= starting completion logic =========="
+    __helm_debug "CURRENT: ${CURRENT}, words[*]: ${words[*]}"
+
+    lastParam=${words[-1]}
+    lastChar=${lastParam[-1]}
+    __helm_debug "lastParam: ${lastParam}, lastChar: ${lastChar}"
+
+    # For zsh, when completing a flag with an = (e.g., helm -n=<TAB>)
+    # completions must be prefixed with the flag
+    setopt local_options BASH_REMATCH
+    if [[ "${lastParam}" =~ '-.*=' ]]; then
+        # We are dealing with a flag with an =
+        flagPrefix=${BASH_REMATCH}
+    fi
+
+    # Prepare the command to obtain completions
+    requestComp="${words[1]} %[1]s ${words[2,-1]}"
+    if [ "${lastChar}" = "" ]; then
+        # If the last parameter is complete (there is a space following it)
+        # We add an extra empty parameter so we can indicate this to the go completion code.
+        __helm_debug "Adding extra empty parameter"
+        requestComp="${requestComp} \"\""
+    fi
+
+    __helm_debug "About to call: eval ${requestComp}"
+
+    # Use eval to handle any environment variables and such
+    out=$(eval ${requestComp} 2>/dev/null)
+    __helm_debug "completion output: ${out}"
+
+    # Extract the directive integer following a : as the last line
+    if [ "${out[-2]}" = : ]; then
+        directive=${out[-1]}
+        # Remove the directive (that means the last 3 chars as we include the : and the newline)
+        out=${out[1,-4]}
+    else
+        # There is not directive specified.  Leave $out as is.
+        __helm_debug "No directive found.  Setting do default"
+        directive=0
+    fi
+
+    __helm_debug "directive: ${directive}"
+    __helm_debug "completions: ${out}"
+    __helm_debug "flagPrefix: ${flagPrefix}"
+
+    if [ $((directive & %[2]d)) -ne 0 ]; then
+        __helm_debug "Completion received error. Ignoring completions."
+    else
+        compCount=0
+        while IFS='\n' read -r comp; do
+            if [ -n "$comp" ]; then
+                ((compCount++))
+                if [ -n "$flagPrefix" ]; then
+                    # We use compadd here so that we can hide the flagPrefix from the list
+                    # of choices. We can use compadd because there is no description in this case.
+                    __helm_debug "Calling: compadd -p ${flagPrefix} ${comp}"
+                    compadd -p ${flagPrefix} ${comp}
+                else
+                    # If requested, completions are returned with a description.
+                    # The description is preceded by a TAB character.
+                    # For zsh's _describe, we need to use a : instead of a TAB.
+                    # We first need to escape any : as part of the completion itself.
+                    comp=${comp//:/\\:}
+
+                    local tab=$(printf '\t')
+                    comp=${comp//$tab/:}
+
+                    __helm_debug "Adding completion: ${comp}"
+                    completions+=${comp}
+                fi
+                lastComp=$comp
+            fi
+        done < <(printf "%%s\n" "${out[@]}")
+
+        if [ ${compCount} -eq 0 ]; then
+            if [ $((directive & %[4]d)) -ne 0 ]; then
+                __helm_debug "deactivating file completion"
+            else
+                # Perform file completion
+                __helm_debug "activating file completion"
+                _arguments '*:filename:_files'
+            fi
+        elif [ $((directive & %[3]d)) -ne 0 ] && [ ${compCount} -eq 1 ]; then
+            __helm_debug "Activating nospace."
+            # We can use compadd here as there is no description when
+            # there is only one completion.
+            compadd -S '' "${lastComp}"
+        else
+            _describe "completions" completions
+        fi
+    fi
+}
+
+compdef __helm_do_completion helm
+`, compCmd, BashCompDirectiveError, BashCompDirectiveNoSpace, BashCompDirectiveNoFileComp)
+
+	out.Write([]byte(zshScript))
+
+	return nil
+}
+
 // GenFishCompletion returns the fish script to handle completion fully
 // This should eventually be provided by Cobra
 func GenFishCompletion(out io.Writer, completionNoDesc bool) error {
@@ -349,6 +464,7 @@ func NewCompleteCmd(settings *cli.EnvSettings, out io.Writer) *cobra.Command {
 
 			for _, comp := range completions {
 				// Print each possible completion to stdout for the completion script to consume.
+				// Each completion must be on separate line as the completion scripts expect it that way.
 				fmt.Fprintln(out, comp)
 			}
 

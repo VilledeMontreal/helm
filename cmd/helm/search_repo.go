@@ -362,25 +362,6 @@ func compListCharts(toComplete string, includeFiles bool) ([]string, completion.
 	}
 	if noSpace {
 		directive = directive | completion.BashCompDirectiveNoSpace
-		// The completion.BashCompDirective flags do not work for zsh right now.
-		// We handle it ourselves instead.
-		completions = compEnforceNoSpace(completions)
 	}
 	return completions, directive
-}
-
-// This function prevents the shell from adding a space after
-// a completion by adding a second, fake completion.
-// It is only needed for zsh, but we cannot tell which shell
-// is being used here, so we do the fake completion all the time;
-// there are no real downsides to doing this for bash as well.
-func compEnforceNoSpace(completions []string) []string {
-	// To prevent the shell from adding space after the completion,
-	// we trick it by pretending there is a second, longer match.
-	// We only do this if there is a single choice for completion.
-	if len(completions) == 1 {
-		completions = append(completions, completions[0]+".")
-		completion.CompDebugln(fmt.Sprintf("compEnforceNoSpace: completions now are %v", completions))
-	}
-	return completions
 }
