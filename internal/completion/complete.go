@@ -537,7 +537,7 @@ func getCompletions(cmd *cobra.Command, args []string) ([]string, BashCompDirect
 				subCmdExists = true
 				if strings.HasPrefix(subCmd.Name(), toComplete) {
 					comp := subCmd.Name()
-					if includeDesc {
+					if includeDesc && subCmd.Short != "" {
 						comp = fmt.Sprintf("%s\t%s", comp, subCmd.Short)
 					}
 					completions = append(completions, comp)
@@ -622,7 +622,7 @@ func getFlagNameCompletions(flag *pflag.Flag, toComplete string, includeDesc boo
 	}
 
 	// Add documentation if requested
-	if includeDesc {
+	if includeDesc && flag.Usage != "" {
 		for idx, comp := range completions {
 			completions[idx] = fmt.Sprintf("%s\t%s", comp, flag.Usage)
 		}
