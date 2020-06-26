@@ -91,6 +91,7 @@ func newCompletionCmd(out io.Writer) *cobra.Command {
 			return runCompletionBash(out, cmd)
 		},
 	}
+	bash.Flags().BoolVar(&disableCompDescriptions, noDescFlagName, false, noDescFlagText)
 
 	zsh := &cobra.Command{
 		Use:                   "zsh",
@@ -124,7 +125,12 @@ func newCompletionCmd(out io.Writer) *cobra.Command {
 }
 
 func runCompletionBash(out io.Writer, cmd *cobra.Command) error {
-	err := cmd.Root().GenBashCompletion(out)
+	var err error
+	if disableCompDescriptions {
+		err = cmd.Root().GenBashCompletion(out)
+	} else {
+		err = cmd.Root().GenBashCompletionWithDesc(out)
+	}
 
 	// In case the user renamed the helm binary (e.g., to be able to run
 	// both helm2 and helm3), we hook the new binary name to the completion function
