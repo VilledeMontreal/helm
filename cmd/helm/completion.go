@@ -63,6 +63,15 @@ $ helm completion fish > ~/.config/fish/completions/helm.fish
 
 You will need to start a new shell for this setup to take effect.
 `
+const pwshCompDesc = `
+Generate the autocompletion script for Helm for powershell.
+
+To load completions in your current shell session:
+PS C:\> helm completion powershell | Out-String | Invoke-Expression
+
+To load completions for every new session, add the output of the above command
+to your powershell profile.
+`
 
 const (
 	noDescFlagName = "no-descriptions"
@@ -88,7 +97,25 @@ func newCompletionCmd(out io.Writer) *cobra.Command {
 		DisableFlagsInUseLine: true,
 		ValidArgsFunction:     noCompletions,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runCompletionBash(out, cmd)
+			err := cmd.Root().GenBashCompletion(out)
+
+			// In case the user renamed the helm binary (e.g., to be able to run
+			// both helm2 and helm3), we hook the new binary name to the completion function
+			if binary := filepath.Base(os.Args[0]); binary != "helm" {
+				renamedBinaryHook := `
+# Hook the command used to generate the completion script
+# to the helm completion function to handle the case where
+# the user renamed the helm binary
+if [[ $(type -t compopt) = "builtin" ]]; then
+	complete -o default -F __start_helm %[1]s
+else
+	complete -o default -o nospace -F __start_helm %[1]s
+fi
+`
+				fmt.Fprintf(out, renamedBinaryHook, binary)
+			}
+
+			return err
 		},
 	}
 
@@ -100,7 +127,27 @@ func newCompletionCmd(out io.Writer) *cobra.Command {
 		DisableFlagsInUseLine: true,
 		ValidArgsFunction:     noCompletions,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runCompletionZsh(out, cmd)
+			var err error
+			if disableCompDescriptions {
+				err = cmd.Root().GenZshCompletionNoDesc(out)
+			} else {
+				err = cmd.Root().GenZshCompletion(out)
+			}
+			// Allow to source the zsh completion file, although Cobra doesn't
+			fmt.Fprintf(out, "compdef _helm helm")
+
+			// In case the user renamed the helm binary (e.g., to be able to run
+			// both helm2 and helm3), we hook the new binary name to the completion function
+			if binary := filepath.Base(os.Args[0]); binary != "helm" {
+				renamedBinaryHook := `
+# Hook the command used to generate the completion script
+# to the helm completion function to handle the case where
+# the user renamed the helm binary
+compdef _helm %[1]s
+`
+				fmt.Fprintf(out, renamedBinaryHook, binary)
+			}
+			return err
 		},
 	}
 	zsh.Flags().BoolVar(&disableCompDescriptions, noDescFlagName, false, noDescFlagText)
@@ -113,64 +160,31 @@ func newCompletionCmd(out io.Writer) *cobra.Command {
 		DisableFlagsInUseLine: true,
 		ValidArgsFunction:     noCompletions,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runCompletionFish(out, cmd)
+			return cmd.Root().GenFishCompletion(out, !disableCompDescriptions)
 		},
 	}
 	fish.Flags().BoolVar(&disableCompDescriptions, noDescFlagName, false, noDescFlagText)
 
-	cmd.AddCommand(bash, zsh, fish)
+	pwsh := &cobra.Command{
+		Use:                   "powershell",
+		Aliases:               []string{"pwsh"},
+		Short:                 "generate autocompletions script for powershell",
+		Long:                  pwshCompDesc,
+		Args:                  require.NoArgs,
+		DisableFlagsInUseLine: true,
+		ValidArgsFunction:     noCompletions,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if disableCompDescriptions {
+				return cmd.Root().GenPowerShellCompletion(out)
+			}
+			return cmd.Root().GenPowerShellCompletionWithDesc(out)
+		},
+	}
+	pwsh.Flags().BoolVar(&disableCompDescriptions, noDescFlagName, false, noDescFlagText)
+
+	cmd.AddCommand(bash, zsh, fish, pwsh)
 
 	return cmd
-}
-
-func runCompletionBash(out io.Writer, cmd *cobra.Command) error {
-	err := cmd.Root().GenBashCompletion(out)
-
-	// In case the user renamed the helm binary (e.g., to be able to run
-	// both helm2 and helm3), we hook the new binary name to the completion function
-	if binary := filepath.Base(os.Args[0]); binary != "helm" {
-		renamedBinaryHook := `
-# Hook the command used to generate the completion script
-# to the helm completion function to handle the case where
-# the user renamed the helm binary
-if [[ $(type -t compopt) = "builtin" ]]; then
-    complete -o default -F __start_helm %[1]s
-else
-    complete -o default -o nospace -F __start_helm %[1]s
-fi
-`
-		fmt.Fprintf(out, renamedBinaryHook, binary)
-	}
-
-	return err
-}
-
-func runCompletionZsh(out io.Writer, cmd *cobra.Command) error {
-	var err error
-	if disableCompDescriptions {
-		err = cmd.Root().GenZshCompletionNoDesc(out)
-	} else {
-		err = cmd.Root().GenZshCompletion(out)
-	}
-	// Allow to source the zsh completion file, although Cobra doesn't
-	fmt.Fprintf(out, "compdef _helm helm")
-
-	// In case the user renamed the helm binary (e.g., to be able to run
-	// both helm2 and helm3), we hook the new binary name to the completion function
-	if binary := filepath.Base(os.Args[0]); binary != "helm" {
-		renamedBinaryHook := `
-# Hook the command used to generate the completion script
-# to the helm completion function to handle the case where
-# the user renamed the helm binary
-compdef _helm %[1]s
-		 `
-		fmt.Fprintf(out, renamedBinaryHook, binary)
-	}
-	return err
-}
-
-func runCompletionFish(out io.Writer, cmd *cobra.Command) error {
-	return cmd.Root().GenFishCompletion(out, !disableCompDescriptions)
 }
 
 // Function to disable file completion
