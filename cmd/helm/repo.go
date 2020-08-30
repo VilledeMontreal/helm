@@ -38,7 +38,7 @@ func newRepoCmd(out io.Writer) *cobra.Command {
 		Short:             "add, list, remove, update, and index chart repositories",
 		Long:              repoHelm,
 		Args:              require.NoArgs,
-		ValidArgsFunction: noCompletions, // Disable file completion
+		ValidArgsFunction: noCompletions(), // Disable file completion
 	}
 
 	cmd.AddCommand(newRepoAddCmd(out))

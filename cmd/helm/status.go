@@ -55,7 +55,7 @@ func newStatusCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		Args:  require.ExactArgs(1),
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			if len(args) != 0 {
-				return nil, cobra.ShellCompDirectiveNoFileComp
+				return compWithHint(noMoreArgsHint)
 			}
 			return compListReleases(toComplete, cfg)
 		},

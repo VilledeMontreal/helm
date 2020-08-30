@@ -49,8 +49,8 @@ func newVerifyCmd(out io.Writer) *cobra.Command {
 				// Allow file completion when completing the argument for the path
 				return nil, cobra.ShellCompDirectiveDefault
 			}
-			// No more completions, so disable file completion
-			return nil, cobra.ShellCompDirectiveNoFileComp
+			// No more arguments accepted
+			return compWithHint(noMoreArgsHint)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			err := client.Run(args[0])

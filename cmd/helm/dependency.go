@@ -89,7 +89,7 @@ func newDependencyCmd(out io.Writer) *cobra.Command {
 		Short:             "manage a chart's dependencies",
 		Long:              dependencyDesc,
 		Args:              require.NoArgs,
-		ValidArgsFunction: noCompletions, // Disable file completion
+		ValidArgsFunction: noCompletions(), // Disable file completion
 	}
 
 	cmd.AddCommand(newDependencyListCmd(out))

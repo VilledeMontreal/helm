@@ -60,13 +60,13 @@ func newShowCmd(out io.Writer) *cobra.Command {
 		Aliases:           []string{"inspect"},
 		Long:              showDesc,
 		Args:              require.NoArgs,
-		ValidArgsFunction: noCompletions, // Disable file completion
+		ValidArgsFunction: noCompletions(), // Disable file completion
 	}
 
 	// Function providing dynamic auto-completion
 	validArgsFunc := func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		if len(args) != 0 {
-			return nil, cobra.ShellCompDirectiveNoFileComp
+			return compWithHint(noMoreArgsHint)
 		}
 		return compListCharts(toComplete, true)
 	}

@@ -258,8 +258,13 @@ func compInstall(args []string, toComplete string, client *action.Install) ([]st
 	if client.GenerateName {
 		requiredArgs = 0
 	}
+	if len(args) < requiredArgs {
+		// The user must choose a name for the release.  Let's provide a hint.
+		return compWithHint("You must select a name for your release.")
+
+	}
 	if len(args) == requiredArgs {
 		return compListCharts(toComplete, true)
 	}
-	return nil, cobra.ShellCompDirectiveNoFileComp
+	return compWithHint(noMoreArgsHint)
 }

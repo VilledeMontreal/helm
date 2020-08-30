@@ -77,7 +77,7 @@ func newRootCmd(actionConfig *action.Configuration, out io.Writer, args []string
 		SilenceUsage: true,
 		// This breaks completion for 'helm help <TAB>'
 		// The Cobra release following 1.0 will fix this
-		//ValidArgsFunction: noCompletions, // Disable file completion
+		//ValidArgsFunction: noCompletions(), // Disable file completion
 	}
 	flags := cmd.PersistentFlags()
 

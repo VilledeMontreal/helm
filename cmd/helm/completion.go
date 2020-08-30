@@ -67,6 +67,8 @@ You will need to start a new shell for this setup to take effect.
 const (
 	noDescFlagName = "no-descriptions"
 	noDescFlagText = "disable completion descriptions"
+
+	noMoreArgsHint = "This command does not take any more arguments (but may accept flags)."
 )
 
 var disableCompDescriptions bool
@@ -77,7 +79,7 @@ func newCompletionCmd(out io.Writer) *cobra.Command {
 		Short:             "generate autocompletions script for the specified shell",
 		Long:              completionDesc,
 		Args:              require.NoArgs,
-		ValidArgsFunction: noCompletions, // Disable file completion
+		ValidArgsFunction: noCompletions(), // Disable file completion
 	}
 
 	bash := &cobra.Command{
@@ -86,7 +88,7 @@ func newCompletionCmd(out io.Writer) *cobra.Command {
 		Long:                  bashCompDesc,
 		Args:                  require.NoArgs,
 		DisableFlagsInUseLine: true,
-		ValidArgsFunction:     noCompletions,
+		ValidArgsFunction:     noCompletionsWithHint(noMoreArgsHint),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runCompletionBash(out, cmd)
 		},
@@ -99,7 +101,7 @@ func newCompletionCmd(out io.Writer) *cobra.Command {
 		Long:                  zshCompDesc,
 		Args:                  require.NoArgs,
 		DisableFlagsInUseLine: true,
-		ValidArgsFunction:     noCompletions,
+		ValidArgsFunction:     noCompletionsWithHint(noMoreArgsHint),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runCompletionZsh(out, cmd)
 		},
@@ -112,7 +114,7 @@ func newCompletionCmd(out io.Writer) *cobra.Command {
 		Long:                  fishCompDesc,
 		Args:                  require.NoArgs,
 		DisableFlagsInUseLine: true,
-		ValidArgsFunction:     noCompletions,
+		ValidArgsFunction:     noCompletionsWithHint(noMoreArgsHint),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runCompletionFish(out, cmd)
 		},
@@ -180,6 +182,18 @@ func runCompletionFish(out io.Writer, cmd *cobra.Command) error {
 }
 
 // Function to disable file completion
-func noCompletions(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	return nil, cobra.ShellCompDirectiveNoFileComp
+func noCompletions() func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+}
+
+func noCompletionsWithHint(hint string) func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return compWithHint(hint)
+	}
+}
+
+func compWithHint(hint string) ([]string, cobra.ShellCompDirective) {
+	return []string{fmt.Sprintf("Hint: %s", hint)}, cobra.ShellCompDirectiveInfo
 }

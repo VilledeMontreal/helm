@@ -34,7 +34,7 @@ func newSearchCmd(out io.Writer) *cobra.Command {
 		Use:               "search [keyword]",
 		Short:             "search for a keyword in charts",
 		Long:              searchDesc,
-		ValidArgsFunction: noCompletions, // Disable file completion
+		ValidArgsFunction: noCompletions(), // Disable file completion
 	}
 
 	cmd.AddCommand(newSearchHubCmd(out))

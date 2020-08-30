@@ -35,7 +35,7 @@ func newPluginCmd(out io.Writer) *cobra.Command {
 		Use:               "plugin",
 		Short:             "install, list, or uninstall Helm plugins",
 		Long:              pluginHelp,
-		ValidArgsFunction: noCompletions, // Disable file completion
+		ValidArgsFunction: noCompletions(), // Disable file completion
 	}
 	cmd.AddCommand(
 		newPluginInstallCmd(out),

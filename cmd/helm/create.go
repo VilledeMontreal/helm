@@ -70,8 +70,8 @@ func newCreateCmd(out io.Writer) *cobra.Command {
 				// which could be a path
 				return nil, cobra.ShellCompDirectiveDefault
 			}
-			// No more completions, so disable file completion
-			return nil, cobra.ShellCompDirectiveNoFileComp
+			// No more arguments accepted
+			return compWithHint(noMoreArgsHint)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			o.name = args[0]
