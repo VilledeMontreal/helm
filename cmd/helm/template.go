@@ -61,7 +61,7 @@ func newTemplateCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		Long:  templateDesc,
 		Args:  require.MinimumNArgs(1),
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return compInstall(args, toComplete, client)
+			return compInstall(args, toComplete, client, cfg)
 		},
 		RunE: func(_ *cobra.Command, args []string) error {
 			client.DryRun = true

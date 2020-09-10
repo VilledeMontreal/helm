@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"time"
@@ -26,6 +27,7 @@ import (
 	"github.com/spf13/pflag"
 
 	"helm.sh/helm/v3/cmd/helm/require"
+	"helm.sh/helm/v3/internal/completion"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chart/loader"
@@ -114,7 +116,7 @@ func newInstallCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		Long:  installDesc,
 		Args:  require.MinimumNArgs(1),
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return compInstall(args, toComplete, client)
+			return compInstall(args, toComplete, client, cfg)
 		},
 		RunE: func(_ *cobra.Command, args []string) error {
 			rel, err := runInstall(args, client, valueOpts, out)
@@ -254,13 +256,52 @@ func checkIfInstallable(ch *chart.Chart) error {
 }
 
 // Provide dynamic auto-completion for the install and template commands
-func compInstall(args []string, toComplete string, client *action.Install) ([]string, cobra.ShellCompDirective) {
+func compInstall(args []string, toComplete string, client *action.Install, cfg *action.Configuration) ([]string, cobra.ShellCompDirective) {
 	requiredArgs := 1
 	if client.GenerateName {
 		requiredArgs = 0
 	}
-	if len(args) == requiredArgs {
-		return compListCharts(toComplete, true)
+
+	// helm install <TAB>
+	if len(args) < requiredArgs {
+		// The user must choose a name for the release.  Let's provide a hint.
+		// helm install abc<TAB>
+		if len(toComplete) >= 3 {
+			// If the user has typed at least three characters, we tell completion to accept it
+			// TODO check that name is valid and does not exist already
+			return []string{toComplete}, cobra.ShellCompDirectiveNoFileComp
+		}
+
+		var comps []string
+		comps = completion.AppendCompInfo(comps, "You must choose a name for your release.")
+		if len(toComplete) > 0 {
+			// helm install ab<TAB>
+			comps = completion.AppendCompInfo(comps, "A name of at least 3 characters is recommended.")
+		}
+		return comps, cobra.ShellCompDirectiveNoFileComp
 	}
-	return compWithHint(nil, noMoreArgsHint), cobra.ShellCompDirectiveNoFileComp
+
+	var comps []string
+	var directive cobra.ShellCompDirective
+	// helm install <release> <TAB> || helm install --generate-name <TAB>
+	if len(args) == requiredArgs {
+		comps, directive = compListCharts(toComplete, true)
+	}
+
+	// If the user specified a release name do some checking on it
+	if requiredArgs == 1 && len(args) >= 1 {
+		client := action.NewInstall(cfg)
+		client.ReleaseName = args[0]
+		client.Namespace = settings.Namespace()
+		if err := client.AvailableName(); err != nil {
+			comps = completion.AppendCompInfo(comps, fmt.Sprintf("WARNING: %s", err.Error()))
+		}
+	}
+
+	if len(args) > requiredArgs {
+		directive |= cobra.ShellCompDirectiveNoFileComp
+		comps = completion.AppendCompInfo(comps, noMoreArgsHint)
+	}
+
+	return comps, directive
 }

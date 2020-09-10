@@ -400,6 +400,10 @@ func (i *Install) failRelease(rel *release.Release, err error) (*release.Release
 	return rel, err
 }
 
+func (i *Install) AvailableName() error {
+	return i.availableName()
+}
+
 // availableName tests whether a name is available
 //
 // Roughly, this will return an error if name is
