@@ -26,6 +26,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"helm.sh/helm/v3/cmd/helm/require"
+	"helm.sh/helm/v3/internal/completion"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/cli/output"
 	"helm.sh/helm/v3/pkg/release"
@@ -63,12 +64,25 @@ func newListCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 	var outfmt output.Format
 
 	cmd := &cobra.Command{
-		Use:               "list",
-		Short:             "list releases",
-		Long:              listHelp,
-		Aliases:           []string{"ls"},
-		Args:              require.NoArgs,
-		ValidArgsFunction: noCompWithHintFunc(noMoreArgsHint),
+		Use:     "list",
+		Short:   "list releases",
+		Long:    listHelp,
+		Aliases: []string{"ls"},
+		Args:    require.NoArgs,
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			var comps []string
+			comps = completion.AppendCompInfo(comps, noMoreArgsHint)
+			if len(args) == 0 && len(toComplete) == 0 {
+				// helm list <TAB>
+				if settings.Namespace() == "default" && !client.AllNamespaces {
+					comps = completion.AppendCompInfo(comps, "Don't forget to specify the namespace using -n (-A for all).")
+				}
+			} else {
+				// helm list ar<TAB> || helm list arg1... <TAB>
+				comps = completion.AppendCompInfo(comps, "You may be looking for the --filter flag.")
+			}
+			return comps, cobra.ShellCompDirectiveNoFileComp
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if client.AllNamespaces {
 				if err := cfg.Init(settings.RESTClientGetter(), "", os.Getenv("HELM_DRIVER"), debug); err != nil {
