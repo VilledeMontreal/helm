@@ -67,9 +67,7 @@ func bindOutputFlag(cmd *cobra.Command, varRef *output.Format) {
 	err := cmd.RegisterFlagCompletionFunc(outputFlag, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		var formatNames []string
 		for _, format := range output.Formats() {
-			if strings.HasPrefix(format, toComplete) {
-				formatNames = append(formatNames, format)
-			}
+			formatNames = append(formatNames, format)
 		}
 		return formatNames, cobra.ShellCompDirectiveNoFileComp
 	})
@@ -148,10 +146,7 @@ func compVersionFlag(chartRef string, toComplete string) ([]string, cobra.ShellC
 	var versions []string
 	if indexFile, err := repo.LoadIndexFile(path); err == nil {
 		for _, details := range indexFile.Entries[chartName] {
-			version := details.Metadata.Version
-			if strings.HasPrefix(version, toComplete) {
-				versions = append(versions, version)
-			}
+			versions = append(versions, details.Metadata.Version)
 		}
 	}
 

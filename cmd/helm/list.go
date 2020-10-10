@@ -193,7 +193,15 @@ func compListReleases(toComplete string, cfg *action.Configuration) ([]string, c
 	client := action.NewList(cfg)
 	client.All = true
 	client.Limit = 0
-	client.Filter = fmt.Sprintf("^%s", toComplete)
+
+	// Do not filter so as to get the entire list of releases.
+	// This will allow zsh and fish to match completion choices
+	// on other criteria then prefix.  For example:
+	//   helm status ingress<TAB>
+	// can match
+	//   helm status nginx-ingress
+	//
+	//	client.Filter = fmt.Sprintf("^%s", toComplete)
 
 	client.SetStateMask()
 	results, err := client.Run()

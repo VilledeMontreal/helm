@@ -18,7 +18,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"strings"
 
 	"github.com/gosuri/uitable"
 	"github.com/spf13/cobra"
@@ -57,9 +56,7 @@ func compListPlugins(toComplete string) []string {
 	plugins, err := plugin.FindPlugins(settings.PluginsDirectory)
 	if err == nil {
 		for _, p := range plugins {
-			if strings.HasPrefix(p.Metadata.Name, toComplete) {
-				pNames = append(pNames, p.Metadata.Name)
-			}
+			pNames = append(pNames, p.Metadata.Name)
 		}
 	}
 	return pNames

@@ -259,9 +259,7 @@ func compListChartsOfRepo(repoName string, prefix string) []string {
 		scanner := bufio.NewScanner(bytes.NewReader(content))
 		for scanner.Scan() {
 			fullName := fmt.Sprintf("%s/%s", repoName, scanner.Text())
-			if strings.HasPrefix(fullName, prefix) {
-				charts = append(charts, fullName)
-			}
+			charts = append(charts, fullName)
 		}
 		return charts
 	}
@@ -274,10 +272,7 @@ func compListChartsOfRepo(repoName string, prefix string) []string {
 		path = filepath.Join(settings.RepositoryCache, helmpath.CacheIndexFile(repoName))
 		if indexFile, err := repo.LoadIndexFile(path); err == nil {
 			for name := range indexFile.Entries {
-				fullName := fmt.Sprintf("%s/%s", repoName, name)
-				if strings.HasPrefix(fullName, prefix) {
-					charts = append(charts, fullName)
-				}
+				charts = append(charts, fmt.Sprintf("%s/%s", repoName, name))
 			}
 			return charts
 		}

@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -106,9 +105,7 @@ func newRootCmd(actionConfig *action.Configuration, out io.Writer, args []string
 			nsNames := []string{}
 			if namespaces, err := client.CoreV1().Namespaces().List(context.Background(), metav1.ListOptions{TimeoutSeconds: &to}); err == nil {
 				for _, ns := range namespaces.Items {
-					if strings.HasPrefix(ns.Name, toComplete) {
-						nsNames = append(nsNames, ns.Name)
-					}
+					nsNames = append(nsNames, ns.Name)
 				}
 				return nsNames, cobra.ShellCompDirectiveNoFileComp
 			}
@@ -133,9 +130,7 @@ func newRootCmd(actionConfig *action.Configuration, out io.Writer, args []string
 			&clientcmd.ConfigOverrides{}).RawConfig(); err == nil {
 			ctxs := []string{}
 			for name := range config.Contexts {
-				if strings.HasPrefix(name, toComplete) {
-					ctxs = append(ctxs, name)
-				}
+				ctxs = append(ctxs, name)
 			}
 			return ctxs, cobra.ShellCompDirectiveNoFileComp
 		}
