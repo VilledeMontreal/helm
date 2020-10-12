@@ -103,7 +103,21 @@ _helm()
         return
     fi
 
+    local compInfoMarker="%[7]s"
+    local endIndex=${#compInfoMarker}
+    local startIndex=$((${#compInfoMarker}+1))
     while IFS='\n' read -r comp; do
+        # Check if this is an info statement (i.e., prefixed with $compInfoMarker)
+        if [ "${comp[1,$endIndex]}" = "$compInfoMarker" ];then
+            __helm_debug "Info statement found: $comp"
+            comp="${comp[$startIndex,-1]}"
+            if [ -n "$comp" ]; then
+                compadd -x "${comp}"
+            fi
+
+            continue
+        fi
+
         if [ -n "$comp" ]; then
             # If requested, completions are returned with a description.
             # The description is preceded by a TAB character.
@@ -194,8 +208,7 @@ if [ "$funcstack[1]" = "_helm" ]; then
 fi
 `, compCmd,
 		cobra.ShellCompDirectiveError, cobra.ShellCompDirectiveNoSpace, cobra.ShellCompDirectiveNoFileComp,
-		cobra.ShellCompDirectiveFilterFileExt, cobra.ShellCompDirectiveFilterDirs))
-
+		cobra.ShellCompDirectiveFilterFileExt, cobra.ShellCompDirectiveFilterDirs, compInfoMarker))
 	_, err := buf.WriteTo(w)
 	return err
 }

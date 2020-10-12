@@ -88,7 +88,10 @@ function __helm_prepare_completions
     end
 
     set directive (string sub --start 2 $results[-1])
-    set --global __helm_comp_results $results[1..-2]
+
+    # Ignore any information entries since such entries are not supported by fish
+    set -l compInfoMarker "%[7]s"
+    set --global __helm_comp_results (string match -v -r "^$compInfoMarker.*" $results[1..-2])
 
     __helm_debug "Completions are: $__helm_comp_results"
     __helm_debug "Directive is: $directive"
@@ -185,7 +188,7 @@ complete -c helm -e
 complete -c helm -n '__helm_prepare_completions' -f -a '$__helm_comp_results'
 `, compCmd,
 		cobra.ShellCompDirectiveError, cobra.ShellCompDirectiveNoSpace, cobra.ShellCompDirectiveNoFileComp,
-		cobra.ShellCompDirectiveFilterFileExt, cobra.ShellCompDirectiveFilterDirs))
+		cobra.ShellCompDirectiveFilterFileExt, cobra.ShellCompDirectiveFilterDirs, compInfoMarker))
 
 	_, err := buf.WriteTo(w)
 	return err
