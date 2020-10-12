@@ -133,11 +133,35 @@ __helm_process_completion_results() {
             _filedir -d
         fi
     else
+        local completions=()
+        local infos=()
+        __helm_extract_infos
+
         __helm_handle_standard_completion_case
     fi
 
     __helm_handle_special_char "$cur" :
     __helm_handle_special_char "$cur" =
+}
+
+# Separate info lines from real completions.
+# Fills the $info and $completions arrays.
+__helm_extract_infos() {
+    local compInfoMarker="%[7]s"
+    local endIndex=${#compInfoMarker}
+
+    while IFS='' read -r comp; do
+        if [ "${comp:0:endIndex}" = "$compInfoMarker" ]; then
+            comp=${comp:endIndex}
+            __helm_debug "Info statement found: $comp"
+            if [ -n "$comp" ]; then
+                infos+=("$comp")
+            fi
+        else
+            # Not an info line but a normal completion
+            completions+=("$comp")
+        fi
+    done < <(printf "%%s\n" "${out[@]}")
 }
 
 __helm_handle_standard_completion_case() {
@@ -154,9 +178,9 @@ __helm_handle_standard_completion_case() {
         if ((${#comp}>longest)); then
             longest=${#comp}
         fi
-    done < <(printf "%%s\n" "${out[@]}")
+    done < <(printf "%%s\n" "${completions[@]}")
 
-    local completions=()
+    local finalcomps=()
     while IFS='' read -r comp; do
         if [ -z "$comp" ]; then
             continue
@@ -165,12 +189,12 @@ __helm_handle_standard_completion_case() {
         __helm_debug "Original comp: $comp"
         comp="$(__helm_format_comp_descriptions "$comp" "$longest")"
         __helm_debug "Final comp: $comp"
-        completions+=("$comp")
-    done < <(printf "%%s\n" "${out[@]}")
+        finalcomps+=("$comp")
+    done < <(printf "%%s\n" "${completions[@]}")
 
     while IFS='' read -r comp; do
         COMPREPLY+=("$comp")
-    done < <(compgen -W "${completions[*]}" -- "$cur")
+    done < <(compgen -W "${finalcomps[*]}" -- "$cur")
 
     # If there is a single completion left, remove the description text
     if [ ${#COMPREPLY[*]} -eq 1 ]; then
@@ -276,7 +300,7 @@ fi
 # ex: ts=4 sw=4 et filetype=sh
 `, compCmd,
 		cobra.ShellCompDirectiveError, cobra.ShellCompDirectiveNoSpace, cobra.ShellCompDirectiveNoFileComp,
-		cobra.ShellCompDirectiveFilterFileExt, cobra.ShellCompDirectiveFilterDirs))
+		cobra.ShellCompDirectiveFilterFileExt, cobra.ShellCompDirectiveFilterDirs, compInfoMarker))
 
 	_, err := buf.WriteTo(w)
 	return err
