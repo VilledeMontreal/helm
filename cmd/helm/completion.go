@@ -24,6 +24,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"helm.sh/helm/v3/cmd/helm/require"
+	"helm.sh/helm/v3/internal/completion"
 )
 
 const completionDesc = `
@@ -143,12 +144,7 @@ fi
 }
 
 func runCompletionZsh(out io.Writer, cmd *cobra.Command) error {
-	var err error
-	if disableCompDescriptions {
-		err = cmd.Root().GenZshCompletionNoDesc(out)
-	} else {
-		err = cmd.Root().GenZshCompletion(out)
-	}
+	err := completion.GenZshCompletion(out, !disableCompDescriptions)
 
 	// In case the user renamed the helm binary (e.g., to be able to run
 	// both helm2 and helm3), we hook the new binary name to the completion function
@@ -169,7 +165,7 @@ compdef _helm %[1]s
 }
 
 func runCompletionFish(out io.Writer, cmd *cobra.Command) error {
-	return cmd.Root().GenFishCompletion(out, !disableCompDescriptions)
+	return completion.GenFishCompletion(out, !disableCompDescriptions)
 }
 
 // Function to disable file completion
