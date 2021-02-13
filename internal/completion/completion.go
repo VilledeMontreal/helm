@@ -6,6 +6,12 @@ import (
 
 const compInfoMarker = "_info_ "
 
+// CompOpts is used to set options for the completion script
+type CompOpts struct {
+	DescriptionsDisabled bool
+	InfosDisabled        bool
+}
+
 // AppendCompInfo adds the specified completion information string to the specified array.
 // Such strings will be processed by the completion script and will be shown as
 // information to the user.
