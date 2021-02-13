@@ -9,10 +9,15 @@ import (
 )
 
 // GenZshCompletion generates the zsh completion script
-func GenZshCompletion(w io.Writer, includeDesc bool) error {
+func GenZshCompletion(w io.Writer, opts CompOpts) error {
 	compCmd := cobra.ShellCompRequestCmd
-	if !includeDesc {
+	if opts.DescriptionsDisabled {
 		compCmd = cobra.ShellCompNoDescRequestCmd
+	}
+
+	disableCompInfos := 0
+	if opts.InfosDisabled {
+		disableCompInfos = 1
 	}
 	buf := new(bytes.Buffer)
 	buf.WriteString(fmt.Sprintf(`#compdef _helm helm
@@ -106,13 +111,17 @@ _helm()
     local compInfoMarker="%[7]s"
     local endIndex=${#compInfoMarker}
     local startIndex=$((${#compInfoMarker}+1))
+    local disableCompInfos="%[8]d"
     while IFS='\n' read -r comp; do
         # Check if this is an info statement (i.e., prefixed with $compInfoMarker)
         if [ "${comp[1,$endIndex]}" = "$compInfoMarker" ];then
-            __helm_debug "Info statement found: $comp"
-            comp="${comp[$startIndex,-1]}"
-            if [ -n "$comp" ]; then
-                compadd -x "${comp}"
+            # Check that the user did not disabled info statements
+            if [ $disableCompInfos -eq 0 ]; then
+                __helm_debug "Info statement found: $comp"
+                comp="${comp[$startIndex,-1]}"
+                if [ -n "$comp" ]; then
+                    compadd -x "${comp}"
+                fi
             fi
 
             continue
@@ -208,7 +217,7 @@ if [ "$funcstack[1]" = "_helm" ]; then
 fi
 `, compCmd,
 		cobra.ShellCompDirectiveError, cobra.ShellCompDirectiveNoSpace, cobra.ShellCompDirectiveNoFileComp,
-		cobra.ShellCompDirectiveFilterFileExt, cobra.ShellCompDirectiveFilterDirs, compInfoMarker))
+		cobra.ShellCompDirectiveFilterFileExt, cobra.ShellCompDirectiveFilterDirs, compInfoMarker, disableCompInfos))
 	_, err := buf.WriteTo(w)
 	return err
 }

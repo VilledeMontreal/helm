@@ -68,9 +68,16 @@ You will need to start a new shell for this setup to take effect.
 const (
 	noDescFlagName = "no-descriptions"
 	noDescFlagText = "disable completion descriptions"
+
+	noHintFlagName = "no-hints"
+	noHintFlagText = "disable usage hints from the description system"
+	noMoreArgsHint = "This command does not take any more arguments (but may accept flags)."
 )
 
-var disableCompDescriptions bool
+var (
+	disableCompDescriptions bool
+	disableCompHints        bool
+)
 
 func newCompletionCmd(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
@@ -92,6 +99,7 @@ func newCompletionCmd(out io.Writer) *cobra.Command {
 		},
 	}
 	bash.Flags().BoolVar(&disableCompDescriptions, noDescFlagName, false, noDescFlagText)
+	bash.Flags().BoolVar(&disableCompHints, noHintFlagName, false, noHintFlagText)
 
 	zsh := &cobra.Command{
 		Use:               "zsh",
@@ -104,6 +112,7 @@ func newCompletionCmd(out io.Writer) *cobra.Command {
 		},
 	}
 	zsh.Flags().BoolVar(&disableCompDescriptions, noDescFlagName, false, noDescFlagText)
+	zsh.Flags().BoolVar(&disableCompHints, noHintFlagName, false, noHintFlagText)
 
 	fish := &cobra.Command{
 		Use:               "fish",
@@ -123,7 +132,12 @@ func newCompletionCmd(out io.Writer) *cobra.Command {
 }
 
 func runCompletionBash(out io.Writer, cmd *cobra.Command) error {
-	err := completion.GenBashCompletion(out, !disableCompDescriptions)
+	opts := completion.CompOpts{
+		DescriptionsDisabled: disableCompDescriptions,
+		InfosDisabled:        disableCompHints,
+	}
+
+	err := completion.GenBashCompletion(out, opts)
 
 	// In case the user renamed the helm binary (e.g., to be able to run
 	// both helm2 and helm3), we hook the new binary name to the completion function
@@ -145,7 +159,12 @@ fi
 }
 
 func runCompletionZsh(out io.Writer, cmd *cobra.Command) error {
-	err := completion.GenZshCompletion(out, !disableCompDescriptions)
+	opts := completion.CompOpts{
+		DescriptionsDisabled: disableCompDescriptions,
+		InfosDisabled:        disableCompHints,
+	}
+
+	err := completion.GenZshCompletion(out, opts)
 
 	// In case the user renamed the helm binary (e.g., to be able to run
 	// both helm2 and helm3), we hook the new binary name to the completion function
@@ -166,7 +185,10 @@ compdef _helm %[1]s
 }
 
 func runCompletionFish(out io.Writer, cmd *cobra.Command) error {
-	return completion.GenFishCompletion(out, !disableCompDescriptions)
+	opts := completion.CompOpts{
+		DescriptionsDisabled: disableCompDescriptions,
+	}
+	return completion.GenFishCompletion(out, opts)
 }
 
 // Function to disable file completion

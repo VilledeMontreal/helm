@@ -9,9 +9,9 @@ import (
 )
 
 // GenFishCompletion generates the Fish completion script
-func GenFishCompletion(w io.Writer, includeDesc bool) error {
+func GenFishCompletion(w io.Writer, opts CompOpts) error {
 	compCmd := cobra.ShellCompRequestCmd
-	if !includeDesc {
+	if opts.DescriptionsDisabled {
 		compCmd = cobra.ShellCompNoDescRequestCmd
 	}
 	buf := new(bytes.Buffer)

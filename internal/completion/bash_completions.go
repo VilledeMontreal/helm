@@ -8,12 +8,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// GenBashCompletion generates the bash completion script
-func GenBashCompletion(w io.Writer, includeDesc bool) error {
+// GenBashCompletion generates the Bash completion script
+func GenBashCompletion(w io.Writer, opts CompOpts) error {
 	compCmd := cobra.ShellCompRequestCmd
-	if !includeDesc {
+	if opts.DescriptionsDisabled {
 		compCmd = cobra.ShellCompNoDescRequestCmd
 	}
+
+	disableCompInfos := 0
+	if opts.InfosDisabled {
+		disableCompInfos = 1
+	}
+
 	buf := new(bytes.Buffer)
 	buf.WriteString(fmt.Sprintf(`# Helm's own bash completion
 
@@ -143,13 +149,17 @@ __helm_process_completion_results() {
     __helm_handle_special_char "$cur" :
     __helm_handle_special_char "$cur" =
 
-    # Print the info statements before we finish
-    if [ ${#infos} -ne 0 ]; then
-        printf "\n";
-        printf "%%s\n" "${infos[@]}"
-        printf "\n"
-        # This needs bash 4.4
-        printf "%%s" "${PS1@P}${COMP_LINE[@]}"
+    # If the user did not disable info statements, lets print them
+    # before returning the completions
+    local disableCompInfos="%[8]d"
+    if [ $disableCompInfos -eq 0 ]; then
+        if [ ${#infos} -ne 0 ]; then
+            printf "\n";
+            printf "%%s\n" "${infos[@]}"
+            printf "\n"
+            # This needs bash 4.4
+            printf "%%s" "${PS1@P}${COMP_LINE[@]}"
+        fi
     fi
 }
 
@@ -312,7 +322,7 @@ fi
 # ex: ts=4 sw=4 et filetype=sh
 `, compCmd,
 		cobra.ShellCompDirectiveError, cobra.ShellCompDirectiveNoSpace, cobra.ShellCompDirectiveNoFileComp,
-		cobra.ShellCompDirectiveFilterFileExt, cobra.ShellCompDirectiveFilterDirs, compInfoMarker))
+		cobra.ShellCompDirectiveFilterFileExt, cobra.ShellCompDirectiveFilterDirs, compInfoMarker, disableCompInfos))
 
 	_, err := buf.WriteTo(w)
 	return err
