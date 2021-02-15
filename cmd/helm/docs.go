@@ -56,7 +56,7 @@ func newDocsCmd(out io.Writer) *cobra.Command {
 		Long:              docsDesc,
 		Hidden:            true,
 		Args:              require.NoArgs,
-		ValidArgsFunction: noCompletions,
+		ValidArgsFunction: noCompWithHintFunc(noMoreArgsHint),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			o.topCmd = cmd.Root()
 			return o.run(out)

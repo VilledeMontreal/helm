@@ -59,7 +59,7 @@ func newRepoIndexCmd(out io.Writer) *cobra.Command {
 				return nil, cobra.ShellCompDirectiveDefault
 			}
 			// No more completions, so disable file completion
-			return nil, cobra.ShellCompDirectiveNoFileComp
+			return compWithHint(nil, noMoreArgsHint), cobra.ShellCompDirectiveNoFileComp
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			o.dir = args[0]

@@ -262,5 +262,5 @@ func compInstall(args []string, toComplete string, client *action.Install) ([]st
 	if len(args) == requiredArgs {
 		return compListCharts(toComplete, true)
 	}
-	return nil, cobra.ShellCompDirectiveNoFileComp
+	return compWithHint(nil, noMoreArgsHint), cobra.ShellCompDirectiveNoFileComp
 }

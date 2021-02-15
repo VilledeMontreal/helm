@@ -93,7 +93,7 @@ func newCompletionCmd(out io.Writer) *cobra.Command {
 		Long:                  bashCompDesc,
 		Args:                  require.NoArgs,
 		DisableFlagsInUseLine: true,
-		ValidArgsFunction:     noCompletions,
+		ValidArgsFunction:     noCompWithHintFunc(noMoreArgsHint),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runCompletionBash(out, cmd)
 		},
@@ -107,7 +107,7 @@ func newCompletionCmd(out io.Writer) *cobra.Command {
 		Long:                  zshCompDesc,
 		Args:                  require.NoArgs,
 		DisableFlagsInUseLine: true,
-		ValidArgsFunction:     noCompletions,
+		ValidArgsFunction:     noCompWithHintFunc(noMoreArgsHint),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runCompletionZsh(out, cmd)
 		},
@@ -121,7 +121,7 @@ func newCompletionCmd(out io.Writer) *cobra.Command {
 		Long:                  fishCompDesc,
 		Args:                  require.NoArgs,
 		DisableFlagsInUseLine: true,
-		ValidArgsFunction:     noCompletions,
+		ValidArgsFunction:     noCompWithHintFunc(noMoreArgsHint),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runCompletionFish(out, cmd)
 		},
@@ -193,7 +193,12 @@ func runCompletionFish(out io.Writer, cmd *cobra.Command) error {
 	return completion.GenFishCompletion(out, opts)
 }
 
-// Function to disable file completion
-func noCompletions(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	return nil, cobra.ShellCompDirectiveNoFileComp
+func noCompWithHintFunc(hint string) func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return compWithHint(nil, hint), cobra.ShellCompDirectiveNoFileComp
+	}
+}
+
+func compWithHint(comps []string, hint string) []string {
+	return completion.AppendCompInfo(comps, hint)
 }
