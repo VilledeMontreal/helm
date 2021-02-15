@@ -51,7 +51,7 @@ func newRepoUpdateCmd(out io.Writer) *cobra.Command {
 		Short:             "update information of available charts locally from chart repositories",
 		Long:              updateDesc,
 		Args:              require.NoArgs,
-		ValidArgsFunction: noCompletions,
+		ValidArgsFunction: noCompWithHintFunc(noMoreArgsHint),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			o.repoFile = settings.RepositoryConfig
 			o.repoCache = settings.RepositoryCache

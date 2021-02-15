@@ -50,7 +50,7 @@ func newPluginInstallCmd(out io.Writer) *cobra.Command {
 				return nil, cobra.ShellCompDirectiveDefault
 			}
 			// No more completion once the plugin path has been specified
-			return nil, cobra.ShellCompDirectiveNoFileComp
+			return compWithHint(nil, noMoreArgsHint), cobra.ShellCompDirectiveNoFileComp
 		},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return o.complete(args)

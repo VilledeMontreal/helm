@@ -55,7 +55,7 @@ func newRollbackCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 				return compListRevisions(toComplete, cfg, args[0])
 			}
 
-			return nil, cobra.ShellCompDirectiveNoFileComp
+			return compWithHint(nil, noMoreArgsHint), cobra.ShellCompDirectiveNoFileComp
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 1 {

@@ -42,7 +42,8 @@ func newEnvCmd(out io.Writer) *cobra.Command {
 				return keys, cobra.ShellCompDirectiveNoFileComp
 			}
 
-			return nil, cobra.ShellCompDirectiveNoFileComp
+			// No more arguments accepted
+			return compWithHint(nil, noMoreArgsHint), cobra.ShellCompDirectiveNoFileComp
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			envVars := settings.EnvVars()
