@@ -142,6 +142,15 @@ __helm_process_completion_results() {
 
     __helm_handle_special_char "$cur" :
     __helm_handle_special_char "$cur" =
+
+    # Print the info statements before we finish
+    if [ ${#infos} -ne 0 ]; then
+        printf "\n";
+        printf "%%s\n" "${infos[@]}"
+        printf "\n"
+        # This needs bash 4.4
+        printf "%%s" "${PS1@P}${COMP_LINE[@]}"
+    fi
 }
 
 # Separate info lines from real completions.
