@@ -142,6 +142,10 @@ __helm_process_completion_results() {
 
     __helm_handle_special_char "$cur" :
     __helm_handle_special_char "$cur" =
+
+    # Now that all completions are ready and part of COMPREPLY
+    # We can see if the info statements can be added, if any are present
+    __helm_handle_info_completion_case
 }
 
 # Separate info lines from real completions.
@@ -192,6 +196,9 @@ __helm_handle_standard_completion_case() {
         finalcomps+=("$comp")
     done < <(printf "%%s\n" "${completions[@]}")
 
+    # Filter completions on the prefix the user specified ($cur)
+    # We do this here because we need to have already escaped any
+    # special characters of descriptions with __helm_format_comp_descriptions
     while IFS='' read -r comp; do
         COMPREPLY+=("$comp")
     done < <(compgen -W "${finalcomps[*]}" -- "$cur")
@@ -260,6 +267,84 @@ __helm_format_comp_descriptions()
 
     # Must use printf to escape all special characters
     printf "%%q" "${comp}"
+}
+
+# Bash does not have native support to print an explanation through its
+# completion system, so we simulate it ourselves by generating
+# extra completions when we receive informational completions.
+__helm_handle_info_completion_case() {
+    if [ ${#infos[@]} -eq 0 ]; then
+        # No infos, nothing to do
+        return
+    fi
+    
+    # Test if sorting is available by turning it on (as it normally should be on).
+    # We may need to turn it off later.
+    if ! compopt +o nosort &> /dev/null; then
+        __helm_debug "This version of bash does not allow to control sorting of completions.  No comp infos."
+        return
+    fi
+
+    __helm_debug "Infos are: ${infos[@]}"
+
+    # Check if there is a common prefix for the completions.  If so, the shell
+    # will automatically expand what the user typed, so we cannot put any info lines
+    # in that case.
+    local longestPrefix=
+    while IFS='' read -r comp; do
+        __helm_debug "Longest prefix comp is: $comp"
+
+        if [ -z "$longestPrefix" ]; then
+            longestPrefix=$comp
+            continue
+        fi
+
+        # Find longest prefix
+        local prefix= match=
+        for ((i=1;i<=${#comp};i++)); do
+            prefix=${comp:0:$i};
+            if [ "${longestPrefix#$prefix}" != "${longestPrefix}" ]; then
+                match=$prefix
+            else
+                break
+            fi
+        done
+        longestPrefix=$match
+        if [ "$longestPrefix" = "$cur" ]; then
+            break
+        fi
+    done < <(printf "%%s\n" "${COMPREPLY[@]}")
+
+    __helm_debug "${FUNCNAME[0]}: Longest prefix found: $longestPrefix"
+
+    if [ -z "$longestPrefix" ] && [ $((directive & shellCompDirectiveNoFileComp)) -gt 0 ] ||
+            [ "$longestPrefix" = "$cur" ]; then
+        # No common prefix and no file completion => we can print our info lines
+        __helm_debug "${FUNCNAME[0]}: Activating infos"
+
+        # We have received some info statements, so we need to
+        # disable sorting of completions to allow printing the information
+        # lines first and keeping their order.
+        compopt -o nosort
+        # Now sort the real completions ourselves
+        IFS=$'\n' COMPREPLY=($(sort <<<"${COMPREPLY[*]}"))
+        unset IFS
+
+        # Build the final set of completions.
+        # Always follow infos with an empty line for two reasons:
+        # 1- if there is only a single completion (including infos) we need
+        #    a second one to force bash to display the single info
+        # 2- it gives a nice visual delimiter
+        COMPREPLY=("${infos[@]}" "" "${COMPREPLY[@]}")
+
+        # To make sure each info completion is printed on its own line, we make the
+        # first one as long as the full line by padding it with spaces
+        comp=${COMPREPLY[0]}
+        for ((i = ${#comp} ; i < COLUMNS ; i++)); do
+            comp+=" "
+        done
+        COMPREPLY[0]="$comp"
+    fi
 }
 
 __start_helm()
