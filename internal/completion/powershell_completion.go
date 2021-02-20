@@ -107,6 +107,11 @@ Register-ArgumentCompleter -CommandName 'helm' -ScriptBlock {
     $Out = $Out | Where-Object { $_ -ne $Out[-1] }
     __helm_debug "The completions are: $Out"
 
+    # Ignore any info entries since they are not supported in powershell (yet?)
+    $CompInfoMarker="%[7]s"
+    $Out = $Out | Where-Object { -Not $_.StartsWith($compInfoMarker) }
+    __helm_debug "The final completions are: $Out"
+
     if (($Directive -band $ShellCompDirectiveError) -ne 0 ) {
         # Error code.  No completion.
         __helm_debug "Received error from custom completion go code"
