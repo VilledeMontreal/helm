@@ -26,6 +26,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"helm.sh/helm/v3/cmd/helm/require"
+	"helm.sh/helm/v3/internal/completion"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chartutil"
 	"helm.sh/helm/v3/pkg/cli/output"
@@ -59,7 +60,18 @@ func newStatusCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 			if len(args) != 0 {
 				return compWithHint(nil, noMoreArgsHint), cobra.ShellCompDirectiveNoFileComp
 			}
-			return compListReleases(toComplete, args, cfg)
+			comps, directive := compListReleases(toComplete, args, cfg)
+			if len(comps) == 0 {
+				if len(toComplete) == 0 {
+					comps = completion.AppendCompInfo(comps, "There are no releases in this namespace")
+				} else {
+					comps = completion.AppendCompInfo(comps, "No releases match what you have typed")
+				}
+				if settings.Namespace() == "default" {
+					comps = completion.AppendCompInfo(comps, "Don't forget to specify the namespace using the '-n' flag")
+				}
+			}
+			return comps, directive
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			rel, err := client.Run(args[0])
