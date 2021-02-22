@@ -26,6 +26,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
+	"helm.sh/helm/v3/internal/completion"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/cli/values"
 	"helm.sh/helm/v3/pkg/downloader"
@@ -56,6 +57,15 @@ func newPackageCmd(out io.Writer) *cobra.Command {
 		Use:   "package [CHART_PATH] [...]",
 		Short: "package a chart directory into a chart archive",
 		Long:  packageDesc,
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			var comps []string
+			if len(toComplete) == 0 {
+				// If the user has not typed anything yet, provide a hint
+				comps = completion.AppendCompInfo(comps, "Please specify the path to the chart to package")
+			}
+
+			return comps, cobra.ShellCompDirectiveDefault
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.Errorf("need at least one argument, the path to the chart")

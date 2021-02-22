@@ -29,6 +29,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
 
+	"helm.sh/helm/v3/internal/completion"
 	"helm.sh/helm/v3/internal/experimental/registry"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/repo"
@@ -89,6 +90,11 @@ func newRootCmd(actionConfig *action.Configuration, out io.Writer, args []string
 		Short:        "The Helm package manager for Kubernetes.",
 		Long:         globalUsage,
 		SilenceUsage: true,
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			var comps []string
+			comps = completion.AppendCompInfo(comps, "HINT: The most popular commands are: install, upgrade, list and status")
+			return comps, cobra.ShellCompDirectiveNoFileComp
+		},
 	}
 	flags := cmd.PersistentFlags()
 
