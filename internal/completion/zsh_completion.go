@@ -112,6 +112,7 @@ _helm()
     local endIndex=${#compInfoMarker}
     local startIndex=$((${#compInfoMarker}+1))
     local disableCompInfos="%[8]d"
+    local hasCompInfo=0
     while IFS='\n' read -r comp; do
         # Check if this is an info statement (i.e., prefixed with $compInfoMarker)
         if [ "${comp[1,$endIndex]}" = "$compInfoMarker" ];then
@@ -121,6 +122,8 @@ _helm()
                 comp="${comp[$startIndex,-1]}"
                 if [ -n "$comp" ]; then
                     compadd -x "${comp}"
+                    __helm_debug "Info statement will need delimiter"
+                    hasCompInfo=1
                 fi
             fi
 
@@ -142,6 +145,17 @@ _helm()
             lastComp=$comp
         fi
     done < <(printf "%%s\n" "${out[@]}")
+
+    # Add a delimiter after the info statements, but only if:
+    # - there are completions following the info statements, or
+    # - file completion will be performed (so there will be choices after the infos)
+    if [ $hasCompInfo -eq 1 ]; then
+        if [ ${#completions} -ne 0 ] || [ $((directive & shellCompDirectiveNoFileComp)) -eq 0 ]; then
+            __helm_debug "Adding info delimiter"
+            compadd -x "--"
+            hasCompInfo=0
+        fi
+    fi
 
     if [ $((directive & shellCompDirectiveNoSpace)) -ne 0 ]; then
         __helm_debug "Activating nospace."
